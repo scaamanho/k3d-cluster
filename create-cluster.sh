@@ -8,6 +8,9 @@ SERVERS=1
 AGENTS=2
 TRAEFIK_V2=Yes
 
+INSTALL_DASHBOARD=Yes
+
+
 # $1 text to show - $2 default value
 read_value ()
 {
@@ -18,6 +21,7 @@ read_value ()
     fi
 }
 
+# Check if exist docker, k3d and kubectl
 checkDependencies ()
 {
     # Check Docker
@@ -50,7 +54,6 @@ checkDependencies ()
 
 
 
-
 installCluster ()
 {
     echo "Creating K3D cluster"
@@ -70,6 +73,32 @@ installCluster ()
 }
 
 
+installDashboard ()
+{
+    kubectl config use-context k3d-${CLUSTER_NAME}
+
+    # Install Kubernetes Dashboard
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+    # Create dashboard account
+    kubectl create serviceaccount dashboard-admin-sa
+    # bind the dashboard-admin-service-account service account to the cluster-admin role
+    kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+    # display token
+    echo ""
+    echo ""
+    echo "Keep this Token to acces dashboard"
+    echo "----------------------------------"
+    #kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | cut -d' ' -f1)
+    kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | awk '{ print $1 }')
+    echo ""
+    echo ""
+    echo ""
+    echo "Dashboard Access:"
+    echo "----------------------------------"
+    echo "kubectl proxy"
+    echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login"
+}
+
 checkDependencies 
 
 #Retrieve config values 
@@ -81,9 +110,9 @@ read_value "Servers (aka Masters)" "${SERVERS}"
 SERVERS=${READ_VALUE}
 read_value "Agents (aka Workers)" "${AGENTS}"
 AGENTS=${READ_VALUE}
-read_value "HTTP Port" "${HTTP_PORT}"
+read_value "LoadBalancer HTTP Port" "${HTTP_PORT}"
 HTTP_PORT=${READ_VALUE}
-read_value "HTTPS Port" "${HTTPS_PORT}"
+read_value "LoadBalancer HTTPS Port" "${HTTPS_PORT}"
 HTTPS_PORT=${READ_VALUE}
 
 # Todo Ask Traefik v2 & Calico
@@ -91,3 +120,11 @@ HTTPS_PORT=${READ_VALUE}
 #TRAEFIK_V2=${READ_VALUE}
 
 installCluster
+
+read_value "Install Dashbard?" "${INSTALL_DASHBOARD}"
+INSTALL_DASHBOARD=${READ_VALUE}
+
+if [ "${INSTALL_DASHBOARD}" = "Yes" ];
+then
+    installDashboard
+fi
