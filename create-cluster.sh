@@ -59,13 +59,10 @@ installCluster ()
     --port ${HTTPS_PORT}:443@loadbalancer  \
     --port ${HTTP_PORT}:80@loadbalancer \
     --volume $(pwd)/k3dvol:/tmp/k3dvol \
-    --k3s-server-arg '--no-deploy=traefik' \
-    --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
+#    --k3s-server-arg '--no-deploy=traefik' \
+#    --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
     --servers ${SERVERS} \
     --agents ${AGENTS}
-
-
-
 
     echo "LoadBalancer info:"
     echo "kubectl -n=kube-system get svc | egrep -e NAME -e LoadBalancer"
@@ -89,7 +86,7 @@ read_value "HTTPS Port" "${HTTPS_PORT}"
 HTTPS_PORT=${READ_VALUE}
 
 # Todo Ask Traefik v2 & Calico
-read_value "Install Traefik V2" "${TRAEFIK_V2}"
-TRAEFIK_V2=${READ_VALUE}
+#read_value "Install Traefik V2" "${TRAEFIK_V2}"
+#TRAEFIK_V2=${READ_VALUE}
 
 installCluster
