@@ -44,7 +44,7 @@ Note that we are pointing port 443 on host to Cluster Load Balancer's 443 port. 
 --api-port 6553 \
 --port 8443:443@loadbalancer  \
 --port 8080:80@loadbalancer \
---volume $(pwd)/k3dvol:/shared \
+--volume $(pwd)/k3dvol:/tmp/k3dvol \
 --servers 1 --agents 1
 ```
 
