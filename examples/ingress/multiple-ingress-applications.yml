@@ -6,7 +6,7 @@ metadata:
     ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   rules:
-  - host: nginx.sch-labs.ga
+  - host: nginx.example.com
     http:
       paths:
       - path: /
@@ -16,7 +16,7 @@ spec:
             name: nginx
             port:
               number: 80        
-  - host: sch-labs.ga
+  - host: apache.example.com
     http:
       paths:
       - path: /
