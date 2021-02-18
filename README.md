@@ -1,5 +1,14 @@
 # K3D Persistence Cluster
 
+## TLTR
+
+```sh
+> ./create-cluster.sh
+```
+
+This will install all needed software if is not present and follow you in cluster creation.
+
+
 ## Install Software
 ### Install K3D
 
