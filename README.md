@@ -77,8 +77,11 @@ Once cluster is created we can `start`, `stop` or even `delete` them
 
 ```sh
 > k3d node ls
-NAME   ROLE   CLUSTER   STATUS
-...
+NAME                       ROLE           CLUSTER       STATUS
+k3d-k3d-cluster-agent-0    agent          k3d-cluster   running
+k3d-k3d-cluster-agent-1    agent          k3d-cluster   running
+k3d-k3d-cluster-server-0   server         k3d-cluster   running
+k3d-k3d-cluster-serverlb   loadbalancer   k3d-cluster   running
 ```
 
 #### Add/Delete new nodes to cluster
@@ -94,6 +97,39 @@ To delete nodes just use:
 ```sh
 > k3d node delete <nodename>
 ```
+
+Example
+```sh
+> k3d node ls
+NAME                       ROLE           CLUSTER       STATUS
+k3d-k3d-cluster-agent-0    agent          k3d-cluster   running
+k3d-k3d-cluster-agent-1    agent          k3d-cluster   running
+k3d-k3d-cluster-server-0   server         k3d-cluster   running
+k3d-k3d-cluster-serverlb   loadbalancer   k3d-cluster   running
+
+> k3d node create my-new-agent-node --cluster k3d-cluster --role agent
+INFO[0000] Starting Node 'k3d-my-new-agent-node-0'
+
+> k3d node ls
+NAME                       ROLE           CLUSTER       STATUS
+k3d-k3d-cluster-agent-0    agent          k3d-cluster   running
+k3d-k3d-cluster-agent-1    agent          k3d-cluster   running
+k3d-k3d-cluster-server-0   server         k3d-cluster   running
+k3d-k3d-cluster-serverlb   loadbalancer   k3d-cluster   running
+k3d-my-new-agent-node-0    agent          k3d-cluster   running
+
+> k3d node delete  k3d-my-new-agent-node-0
+INFO[0000] Deleted k3d-my-new-agent-node-0   
+
+> k3d node ls
+NAME                       ROLE           CLUSTER       STATUS
+k3d-k3d-cluster-agent-0    agent          k3d-cluster   running
+k3d-k3d-cluster-agent-1    agent          k3d-cluster   running
+k3d-k3d-cluster-server-0   server         k3d-cluster   running
+k3d-k3d-cluster-serverlb   loadbalancer   k3d-cluster   running
+
+```
+
 
 #### Start/Stop nodes
 
