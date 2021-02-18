@@ -6,13 +6,18 @@
 
 * Install tools and create a basic cluster
 
+### v0.0.2
+
+* Install Dashboard
+
+
 
 ## BACKLOG
 
 * Install Rancher
-* Install Dashboard
 * Change Ingress to Traefik v2
 * Change Flanel to Calico
 * Install custom certificates
 * Expand examples
+* Create ansible playbook
 * ...
