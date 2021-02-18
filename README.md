@@ -250,7 +250,7 @@ Now we need create a dashboard acount and bind this acount to `cluster-admin-rol
 after create this user get user token with
 
 ```sh
-> kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | cut -d' ' -f1)
+> kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | awk '{ print $1 }')
 Name:         dashboard-admin-sa-token-bcf79
 Namespace:    default
 Labels:       <none>
@@ -277,6 +277,19 @@ now open URL:
 and use Token to login
 
 ![K8S Dashboard](assets/k8s-dashboard.png)
+
+### Deploy portainer
+
+```sh
+> kubectl apply -f https://raw.githubusercontent.com/portainer/portainer-k8s/master/portainer.yaml
+```
+Once portainer is deployed you can access thought loadbalancer
+
+```sh
+> kubectl -n portainer get svc
+NAME        TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                         AGE
+portainer   LoadBalancer   10.43.243.166   192.168.96.2   9000:31563/TCP,8000:30316/TCP   9m7s
+```
 
 ### Deploy simple applications
 
@@ -407,3 +420,4 @@ References
 <https://github.com/rancher/k3d>
 <https://k3s.io/> <https://github.com/k3s-io/k3s>
 <https://en.sokube.ch/post/k3s-k3d-k8s-a-new-perfect-match-for-dev-and-test>
+<https://dev.to/sosan/k3s-y-k3d-buena-combinacion-para-el-desarrollo-en-local-y-tests-locales-a48>
