@@ -18,6 +18,7 @@
 * Change Ingress to Traefik v2
 * Change Flanel to Calico
 * Install custom certificates
-
+* Install EFK
+* Install Prometheus-Graphana
 * Create ansible playbook
 * ...
