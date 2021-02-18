@@ -11,13 +11,13 @@ Firs install k3d on your system with:
 
 ### Install kubectl
 
-Install kubernetes client
+Also need install kubernetes client in order to manage cluster
 
 ```sh
 > curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
->chmod +x ./kubectl
->sudo mv ./kubectl /usr/local/bin/kubectl
->kubectl version --client
+> chmod +x ./kubectl
+> sudo mv ./kubectl /usr/local/bin/kubectl
+> kubectl version --client
 ```
 
 ## Deploy persistence kubernetes cluster
@@ -30,6 +30,10 @@ Crete a directory in your host where Kubernetes cluster will be persist data
 
 ### Create Kubernetes Cluster with LoadBalancer
 
+**NOTE**: **`Master`** and **`Workers`** nodes are renamed to **`Server`** and **`Agents`** resp.
+
+![LoadBalancer Cluster](assets/k3d-cluster.webp)
+
 Create a Kubernetes Cluster.
 For this sample will keep cluster simple but you can set "any number" of agents and workers, the limits is comon sense and your memory.
 
@@ -38,32 +42,138 @@ Note that we are pointing port 443 on host to Cluster Load Balancer's 443 port. 
 ```sh
 > k3d cluster create dev-cluster \
 --api-port 6553 \
---port 4443:443@loadbalancer  \
---port 4080:80@loadbalancer \
+--port 8443:443@loadbalancer  \
+--port 8080:80@loadbalancer \
 --volume $(pwd)/k3dvol:/shared@agents \
---servers 1 --agents 2
+--servers 1 --agents 1
 ```
 
-### Add nuevos nodos al cluster
+#### Port Mapping
+
+* `--port 8080:80@loadbalancer` will add a mapping of local host port 8080 to loadbalancer port 80, which will proxy requests to port 80 on all agent nodes
+
+* `--api-port 6553` : by default, no API-Port is exposed (no host port mapping). It’s used to have k3s‘s API-Server listening on port 6553 with that port mapped to the host system. So that the load balancer will be the access point to the Kubernetes API, so even for multi-server clusters, you only need to expose a single api port. The load balancer will then take care of proxying your requests to the appropriate server node
+
+* `-p "32000-32767:32000-32767@loadbalancer"`
+You may as well expose a NodePort range (if you want to avoid the Ingress Controller).
+**Warning**: Map a wide range of ports can take a certain amount of time, and your computer can freeze for some time in this process.
+
+### Manage Clusters
+
+Once cluster is created we can `start`, `stop` or even `delete` them
+
+```sh
+> k3d cluster start <cluster-name>
+> k3d cluster stop <cluster-name>
+> k3d cluster delete <cluster-name>`
+```
+
+
+### Mange cluser nodes
+
+#### List cluster nodes
+
+```sh
+> k3d node ls
+NAME   ROLE   CLUSTER   STATUS
+...
+```
+
+#### Add/Delete new nodes to cluster
 
 Create new nodes (and add them to existing clusters)
 
 ```sh
-k3d node create nodename --cluster multiserver --role server
+> k3d node create <nodename> --cluster <cluster-name> --role <agent/server>
 ```
 
-### Exponer nuevos nodos del cluster
+To delete nodes just use:
+
+```sh
+> k3d node delete <nodename>
+```
+
+#### Start/Stop nodes
+
+Also can just stop or start nodes previously created with
+
+
+```sh
+> k3d node start <nodename>
+> k3d node stop <nodename>
+```
+
+k3d create/start/stop/delete node mynode
 
 ### Manage your registry
 
 Create ir delete a local kubernetes internal registry
 
 ```sh
-k3d registry create REGISTRY_NAME 
-k3d registry delete REGISTRY_NAME
+> k3d registry create REGISTRY_NAME 
+> k3d registry delete REGISTRY_NAME
+```
+
+
+### Replace Ingress Controler
+
+K3D uses Traefik 1.x versios as Ingress controler, due Traefik 2.x is enough mature and provide more functionalities we need do some extra work to use Traefik.
+
+First we create a new file `helm-ingress-traefik.yaml` 
+
+```yaml
+# see https://rancher.com/docs/k3s/latest/en/helm/
+# see https://github.com/traefik/traefik-helm-chart
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: ingress-controller-traefik
+  namespace: kube-system
+spec:
+  repo: https://helm.traefik.io/traefik
+  chart: traefik
+  version: 9.8.0
+  targetNamespace: kube-system
+```
+
+
+Now we can create a new cluster telling to k3d not deploy traefik with 
+`--k3s-server-arg '--no-deploy=traefik'` and use previous helm chart defined to deploy new Traefik Ingress Controler
+`--volume "$(pwd)/helm-ingress-traefik.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-traefik.yaml"`
+
+
+```sh
+> k3d cluster create traefik --k3s-server-arg '--no-deploy=traefik' --volume "$(pwd)/helm-ingress-traefik.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-traefik.yaml"
+
 ```
 
 ## Deploy apps on kubernetes
+
+
+### Configure KUBECONFIG
+
+```sh
+export KUBECONFIG=$(k3d kubeconfig write <cluster-name>)
+```
+
+#### Manage Kubeconfig
+K3D provide some commands to manage kubeconfig
+
+get kubeconfig from cluster dev
+
+```sh
+k3d kubeconfig get <cluster-name>
+```
+
+create a kubeconfile file in $HOME/.k3d/kubeconfig-dev.yaml 
+```sh
+kubeconfig write <cluster-name>
+```
+get kubeconfig from cluster(s) and  merge it/them into a file in $HOME/.k3d or another file
+
+```sh
+k3d kubeconfig merge ...
+```
 
 ### Deploy simple applications
 
@@ -95,7 +205,7 @@ spec:
               number: 80
 ```
 
-Probando el despliegue.
+Testing deployments:
 
 ```sh
 > curl localhost:4080
@@ -187,3 +297,10 @@ task-pv-claim    Bound    task-pv-volume                             1Gi        
 NAME                   READY   STATUS    RESTARTS   AGE
 echo-58fd7d9b6-x4rxj   1/1     Running   0          16s
 ```
+
+
+
+References
+<https://github.com/rancher/k3d>
+<https://k3s.io/> <https://github.com/k3s-io/k3s>
+<https://en.sokube.ch/post/k3s-k3d-k8s-a-new-perfect-match-for-dev-and-test>
