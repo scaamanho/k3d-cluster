@@ -21,4 +21,5 @@
 * Install EFK
 * Install Prometheus-Graphana
 * Create ansible playbook
+* Create ha clusters
 * ...
