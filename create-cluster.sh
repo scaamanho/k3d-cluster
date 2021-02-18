@@ -88,7 +88,8 @@ installDashboard ()
     echo ""
     echo "Keep this Token to acces dashboard"
     echo "----------------------------------"
-    kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | cut -d' ' -f1)
+    #kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | cut -d' ' -f1)
+    kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | awk '{ print $1 }')
     echo ""
     echo ""
     echo ""
