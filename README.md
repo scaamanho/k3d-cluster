@@ -44,7 +44,7 @@ Note that we are pointing port 443 on host to Cluster Load Balancer's 443 port. 
 --api-port 6553 \
 --port 8443:443@loadbalancer  \
 --port 8080:80@loadbalancer \
---volume $(pwd)/k3dvol:/shared@agents \
+--volume $(pwd)/k3dvol:/shared \
 --servers 1 --agents 1
 ```
 
@@ -70,6 +70,8 @@ Once cluster is created we can `start`, `stop` or even `delete` them
 
 
 ### Mange cluser nodes
+
+![LoadBalancer Cluster](assets/k3d-cluster-multi.webp)
 
 #### List cluster nodes
 
