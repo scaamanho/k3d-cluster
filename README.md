@@ -41,10 +41,10 @@ Note that we are pointing port 443 on host to Cluster Load Balancer's 443 port. 
 
 ```sh
 > k3d cluster create dev-cluster \
---api-port 6553 \
+--api-port 6443 \
 --port 8443:443@loadbalancer  \
 --port 8080:80@loadbalancer \
---volume $(pwd)/k3dvol:/shared \
+--volume $(pwd)/k3dvol:/tmp/k3dvol \
 --servers 1 --agents 1
 ```
 
@@ -52,9 +52,9 @@ Note that we are pointing port 443 on host to Cluster Load Balancer's 443 port. 
 
 * `--port 8080:80@loadbalancer` will add a mapping of local host port 8080 to loadbalancer port 80, which will proxy requests to port 80 on all agent nodes
 
-* `--api-port 6553` : by default, no API-Port is exposed (no host port mapping). It’s used to have k3s‘s API-Server listening on port 6553 with that port mapped to the host system. So that the load balancer will be the access point to the Kubernetes API, so even for multi-server clusters, you only need to expose a single api port. The load balancer will then take care of proxying your requests to the appropriate server node
+* `--api-port 6443` : by default, no API-Port is exposed (no host port mapping). It’s used to have k3s‘s API-Server listening on port 6553 with that port mapped to the host system. So that the load balancer will be the access point to the Kubernetes API, so even for multi-server clusters, you only need to expose a single api port. The load balancer will then take care of proxying your requests to the appropriate server node
 
-* `-p "32000-32767:32000-32767@loadbalancer"`
+* `--port "32000-32767:32000-32767@loadbalancer"`
 You may as well expose a NodePort range (if you want to avoid the Ingress Controller).
 **Warning**: Map a wide range of ports can take a certain amount of time, and your computer can freeze for some time in this process.
 
@@ -145,7 +145,7 @@ k3d create/start/stop/delete node mynode
 
 ### Manage your registry
 
-Create ir delete a local kubernetes internal registry
+Create or delete a local kubernetes internal registry
 
 ```sh
 > k3d registry create REGISTRY_NAME 
@@ -185,13 +185,23 @@ Now we can create a new cluster telling to k3d not deploy traefik with
 
 ```
 
-## Deploy apps on kubernetes
+## Deploy  on Kubernetes
 
 
 ### Configure KUBECONFIG
 
+By default k3d add cluster to `~/.kube/config` file. 
+
+We can choose default cluster with 
+
 ```sh
-export KUBECONFIG=$(k3d kubeconfig write <cluster-name>)
+> kubectl config use-context k3d-<cluster-name>
+```
+
+or setting KUBECONFIG enviroment 
+
+```sh
+> export KUBECONFIG=$(k3d kubeconfig write <cluster-name>)
 ```
 
 #### Manage Kubeconfig
@@ -200,23 +210,23 @@ K3D provide some commands to manage kubeconfig
 get kubeconfig from cluster dev
 
 ```sh
-k3d kubeconfig get <cluster-name>
+> k3d kubeconfig get <cluster-name>
 ```
 
 create a kubeconfile file in $HOME/.k3d/kubeconfig-dev.yaml 
 ```sh
-kubeconfig write <cluster-name>
+> kubeconfig write <cluster-name>
 ```
 get kubeconfig from cluster(s) and  merge it/them into a file in $HOME/.k3d or another file
 
 ```sh
-k3d kubeconfig merge ...
+> k3d kubeconfig merge ...
 ```
 
 ### Deploy simple applications
 
 ```sh
-> k3d kubeconfig merge dev-cluster --kubeconfig-switch-context
+> kubectl config use-context k3d-k3d-cluster
 > kubectl create deployment nginx --image=nginx
 > kubectl create service clusterip nginx --tcp=80:80
 > kubectl apply -f  nginx-ingress.yml
@@ -281,7 +291,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/shared"
+    path: "/tmp/k3dvol"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
