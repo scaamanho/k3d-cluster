@@ -10,6 +10,8 @@
 
 * Install Dashboard
 * Expand examples
+
+### v0.0.3
 * Install Prometheus-Graphana
 
 
