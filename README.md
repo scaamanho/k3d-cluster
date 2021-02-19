@@ -10,6 +10,16 @@ This will install all needed software if is not present and follow you in cluste
 
 
 ## Install Software
+
+### Install Docker
+
+```sh
+> curl -L -o ./install-docker.sh "https://get.docker.com"
+> chmod +x ./install-docker.sh
+> ./install-docker.sh
+> sudo usermod -aG docker $USER
+```
+
 ### Install K3D
 
 Firs install k3d on your system with:
