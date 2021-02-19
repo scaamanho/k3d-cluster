@@ -70,9 +70,15 @@ header()
 {
     echo ""
     echo ""
-    echo ""
     echo "${1}"
     echo "-------------------------------------"
+}
+
+footer()
+{
+    echo "-------------------------------------"
+    echo ""
+    echo ""
 }
 
 
@@ -91,6 +97,7 @@ installCluster ()
 #    --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
     header "LoadBalancer info:"
     kubectl -n=kube-system get svc | egrep -e NAME -e LoadBalancer
+    footer
 }
 
 
@@ -112,6 +119,7 @@ installDashboard ()
     header "Dashboard Access:"
     echo "kubectl proxy"
     echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login"
+    footer
 }
 
 
@@ -120,14 +128,14 @@ installPrometheus ()
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo add stable https://charts.helm.sh/stable
     helm repo update
-    helm install --namespace prometheus --create-namespace prometheus prometheus-community/prometheus
-    helm install --namespace prometheus --create-namespace grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
+    helm install --namespace monitoring --create-namespace prometheus  --set server.global.scrape_interval=30s prometheus-community/prometheus
+    helm install --namespace monitoring --create-namespace grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
     cat <<EOF | kubectl create -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nginx
-  namespace: prometheus
+  namespace: monitoring
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
 spec:
@@ -147,7 +155,8 @@ EOF
     header "Grafana Access:"
     echo "url: https://grafana.${CLUSTER_DOMAIN}"
     echo "username: admin"
-    echo "password: $(kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
+    echo "password: $(kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
+    footer
 }
 
 checkDependencies 
