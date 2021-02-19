@@ -39,7 +39,7 @@ Also need install kubernetes client in order to manage cluster
 > kubectl version --client
 ```
 
-## Install Helm
+### Install Helm
 
 Due we will use helm for some deploymens is recomended you also install it.
 
@@ -48,6 +48,14 @@ Due we will use helm for some deploymens is recomended you also install it.
 > chmod +x ./get_helm.sh
 > ./get_helm.sh
 ```
+
+### Install Lens
+
+This tool is not mandatory, but helps to inspect cluster without install kubernetes dashboard
+
+just go to <https://k8slens.dev/> and download it for your system
+
+![Lens](assets/lens.png)
 
 ## Deploy persistence kubernetes cluster
 
