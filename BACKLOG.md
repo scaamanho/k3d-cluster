@@ -22,7 +22,6 @@ By default k3s comes with Traefik v1 as the default ingress controller, most of 
 * Change Flanel to Calico (https://k3d.io/usage/guides/calico/)
 * Install custom certificates (https://sysadmins.co.za/https-using-letsencrypt-and-traefik-with-k3s/) (https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes-es)
 * Install EFK
-
 * Create ansible playbook
 * Create ha clusters
 * Improve k8s Registry with k3d
@@ -34,8 +33,4 @@ By default k3s comes with Traefik v1 as the default ingress controller, most of 
 * Portainer (https://github.com/portainer/portainer-k8s)
 kubectl apply -f https://raw.githubusercontent.com/portainer/portainer-k8s/master/portainer.yaml
 https://load-balancer-ip:9000
-
-
-
-
 * ...
