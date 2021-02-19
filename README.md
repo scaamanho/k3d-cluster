@@ -29,6 +29,16 @@ Also need install kubernetes client in order to manage cluster
 > kubectl version --client
 ```
 
+## Install Helm
+
+Due we will use helm for some deploymens is recomended you also install helm
+
+```sh
+> curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+> chmod +x ./get_helm.sh
+> ./get_helm.sh
+```
+
 ## Deploy persistence kubernetes cluster
 
 Crete a directory in your host where Kubernetes cluster will be persist data
@@ -278,6 +288,51 @@ and use Token to login
 
 ![K8S Dashboard](assets/k8s-dashboard.png)
 
+
+### Deploy Prometheus & Grafana
+
+First deploy Prometheus & Grafana and create an ingress entry for Grafana, You can also create another ingress for Prometheus if you need
+
+```sh
+> helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+> helm repo add stable https://charts.helm.sh/stable
+> helm repo update
+> helm install --namespace prometheus --create-namespace prometheus prometheus-community/prometheus
+> helm install --namespace prometheus --create-namespace grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
+> cat <<EOF | kubectl create -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: prometheus
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+    - host: grafana.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
+EOF
+```
+
+
+Once all is installed we can retrieve Grafana credentials to login with `admin` user.
+
+```sh
+> kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+Now we can access Grafana and configure prometheus as  datasource for cluster metrics
+
+![Grafana Configuration](assets/grafana-config.png)
+
 ### Deploy portainer
 
 ```sh
@@ -421,7 +476,7 @@ References
 <https://k3s.io/> <https://github.com/k3s-io/k3s> 
 <https://en.sokube.ch/post/k3s-k3d-k8s-a-new-perfect-match-for-dev-and-test> 
 <https://dev.to/sosan/k3s-y-k3d-buena-combinacion-para-el-desarrollo-en-local-y-tests-locales-a48> 
-
+https://sysdig.com/blog/kubernetes-monitoring-prometheus-operator-part3/
 <https://sysdig.com/blog/kubernetes-monitoring-prometheus/> 
 <https://sysdig.com/blog/kubernetes-monitoring-with-prometheus-alertmanager-grafana-pushgateway-part-2/>
 <https://sysdig.com/blog/kubernetes-monitoring-prometheus-operator-part3/>
