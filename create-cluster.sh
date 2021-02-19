@@ -1,4 +1,5 @@
 #!/bin/sh
+CLUSTER_DOMAIN=sch-labs.ga
 API_PORT=6443
 HTTP_PORT=80
 HTTPS_PORT=443
@@ -9,6 +10,8 @@ AGENTS=2
 TRAEFIK_V2=Yes
 
 INSTALL_DASHBOARD=Yes
+INSTALL_PROMETHEUS=Yes
+DOMAIN=sch-labs.ga
 
 
 # $1 text to show - $2 default value
@@ -110,11 +113,52 @@ installDashboard ()
     echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login"
 }
 
+
+installPrometheus ()
+{
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo add stable https://charts.helm.sh/stable
+    helm repo update
+    helm install prometheus prometheus-community/prometheus
+    helm install grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
+    cat <<EOF | kubectl create -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+    - host: grafana.sch-labs.ga
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
+EOF
+    echo ""
+    echo ""
+    echo ""
+    echo "Grafana Access:"
+    
+    echo "----------------------------------"
+    echo "url: https://grafana.${CLUSTER_DOMAIN}"
+    echo "username: admin"
+    echo "password: $(kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
+}
+
 checkDependencies 
 
 #Retrieve config values 
 read_value "Cluster Name" "${CLUSTER_NAME}"
 CLUSTER_NAME=${READ_VALUE}
+read_value "Cluster Domain" "${CLUSTER_DOMAIN}"
+CLUSTER_DOMAIN=${READ_VALUE}
 read_value "API Port" "${API_PORT}"
 API_PORT=${READ_VALUE}
 read_value "Servers (aka Masters)" "${SERVERS}"
@@ -132,10 +176,17 @@ HTTPS_PORT=${READ_VALUE}
 
 installCluster
 
-read_value "Install Dashbard?" "${INSTALL_DASHBOARD}"
+read_value "Install Dashbard? (Yes/No)" "${INSTALL_DASHBOARD}"
 INSTALL_DASHBOARD=${READ_VALUE}
-
 if [ "${INSTALL_DASHBOARD}" = "Yes" ];
 then
     installDashboard
+fi
+
+read_value "Install Prometheus? (Yes/No)" "${INSTALL_PROMETHEUS}"
+INSTALL_PROMETHEUS=${READ_VALUE}
+
+if [ "${INSTALL_DASHBOARD}" = "Yes" ];
+then
+    installPrometheus
 fi

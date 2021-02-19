@@ -10,17 +10,19 @@
 
 * Install Dashboard
 * Expand examples
+* Install Prometheus-Graphana
 
 
 ## BACKLOG
 
+* Configure k8s Dashboard with Ingress
 * Install Rancher (https://gist.github.com/rafi/d4440661e7de208009701ca3627caa1d)
 * Change Ingress to Traefik v2 / Ingress    
-By default k3s comes with Traefik v1 as the default ingress controller, most of the time I prefer to bring my own ingress controller, my personal choice is ingress-nginx because is fairly straightforward and easy to use (and also a breeze to setup TLS certificates via cert-manager. (https://gist.github.com/rafi/d4440661e7de208009701ca3627caa1d)(https://royportas.com/posts/2020-11-20-setting-up-k3s-and-k3d/)
+By default k3s comes with Traefik v1 as the default ingress controller, most of the time I prefer to bring my own ingress controller, my personal choice is ingress-nginx because is fairly straightforward and easy to use (and also a breeze to setup TLS certificates via cert-manager. (https://gist.github.com/rafi/d4440661e7de208009701ca3627caa1d)(https://royportas.com/posts/2020-11-20-setting-up-k3s-and-k3d/) (https://codeburst.io/creating-a-local-development-kubernetes-cluster-with-k3s-and-traefik-proxy-7a5033cb1c2d)
 * Change Flanel to Calico (https://k3d.io/usage/guides/calico/)
 * Install custom certificates (https://sysadmins.co.za/https-using-letsencrypt-and-traefik-with-k3s/) (https://www.digitalocean.com/community/tutorials/how-to-set-up-an-nginx-ingress-with-cert-manager-on-digitalocean-kubernetes-es)
 * Install EFK
-* Install Prometheus-Graphana
+
 * Create ansible playbook
 * Create ha clusters
 * Improve k8s Registry with k3d
