@@ -6,7 +6,7 @@
 > ./create-cluster.sh
 ```
 
-This will install all needed software if is not present and follow you in cluster creation.
+This will install all needed software if is not present and guide you in cluster creation.
 
 
 ## Install Software
