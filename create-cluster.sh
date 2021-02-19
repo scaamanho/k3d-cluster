@@ -1,17 +1,16 @@
 #!/bin/sh
-CLUSTER_DOMAIN=sch-labs.ga
+CLUSTER_DOMAIN=example.com
 API_PORT=6443
 HTTP_PORT=80
 HTTPS_PORT=443
 CLUSTER_NAME=k3d-cluster
 READ_VALUE=
 SERVERS=1
-AGENTS=2
+AGENTS=1
 TRAEFIK_V2=Yes
 
 INSTALL_DASHBOARD=Yes
 INSTALL_PROMETHEUS=Yes
-DOMAIN=sch-labs.ga
 
 
 # $1 text to show - $2 default value
@@ -67,6 +66,15 @@ checkDependencies ()
 }
 
 
+header()
+{
+    echo ""
+    echo ""
+    echo ""
+    echo "${1}"
+    echo "-------------------------------------"
+}
+
 
 installCluster ()
 {
@@ -81,9 +89,8 @@ installCluster ()
 
 #    --k3s-server-arg '--no-deploy=traefik' \
 #    --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
-
-    echo "LoadBalancer info:"
-    echo "kubectl -n=kube-system get svc | egrep -e NAME -e LoadBalancer"
+    header "LoadBalancer info:"
+    kubectl -n=kube-system get svc | egrep -e NAME -e LoadBalancer
 }
 
 
@@ -98,17 +105,11 @@ installDashboard ()
     # bind the dashboard-admin-service-account service account to the cluster-admin role
     kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
     # display token
-    echo ""
-    echo ""
-    echo "Keep this Token to acces dashboard"
-    echo "----------------------------------"
-    #kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | cut -d' ' -f1)
-    kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | awk '{ print $1 }')
-    echo ""
-    echo ""
-    echo ""
-    echo "Dashboard Access:"
-    echo "----------------------------------"
+    header "Keep this Token to acces dashboard"
+    #kubectl describe secret $(kubectl get secrets | grep dashboard-admin-sa | cut -d' ' -f1)
+    kubectl describe secret $(kubectl get secrets | grep dashboard-admin-sa | awk '{ print $1 }')
+
+    header "Dashboard Access:"
     echo "kubectl proxy"
     echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login"
 }
@@ -141,12 +142,8 @@ spec:
                 port:
                   number: 80
 EOF
-    echo ""
-    echo ""
-    echo ""
-    echo "Grafana Access:"
-    
-    echo "----------------------------------"
+
+    header "Grafana Access:"
     echo "url: https://grafana.${CLUSTER_DOMAIN}"
     echo "username: admin"
     echo "password: $(kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
