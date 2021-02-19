@@ -417,7 +417,11 @@ echo-58fd7d9b6-x4rxj   1/1     Running   0          16s
 
 
 References
-<https://github.com/rancher/k3d>
-<https://k3s.io/> <https://github.com/k3s-io/k3s>
-<https://en.sokube.ch/post/k3s-k3d-k8s-a-new-perfect-match-for-dev-and-test>
-<https://dev.to/sosan/k3s-y-k3d-buena-combinacion-para-el-desarrollo-en-local-y-tests-locales-a48>
+<https://github.com/rancher/k3d> 
+<https://k3s.io/> <https://github.com/k3s-io/k3s> 
+<https://en.sokube.ch/post/k3s-k3d-k8s-a-new-perfect-match-for-dev-and-test> 
+<https://dev.to/sosan/k3s-y-k3d-buena-combinacion-para-el-desarrollo-en-local-y-tests-locales-a48> 
+
+<https://sysdig.com/blog/kubernetes-monitoring-prometheus/> 
+<https://sysdig.com/blog/kubernetes-monitoring-with-prometheus-alertmanager-grafana-pushgateway-part-2/>
+<https://sysdig.com/blog/kubernetes-monitoring-prometheus-operator-part3/>
