@@ -55,6 +55,11 @@ This tool is not mandatory, but helps to inspect cluster without install kuberne
 
 just go to <https://k8slens.dev/> and download it for your system
 
+This tool make use of prometheus if is avaliable on cluster.
+
+You also can use other tools to inspect cluster as vscode plugin for kubernetes `ms-kubernetes-tools.vscode-kubernetes-tools`.
+
+
 ![Lens](assets/lens.png)
 
 ## Deploy persistence kubernetes cluster
