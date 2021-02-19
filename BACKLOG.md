@@ -27,7 +27,6 @@ By default k3s comes with Traefik v1 as the default ingress controller, most of 
 * Create ansible playbook
 * Create ha clusters
 * Improve k8s Registry with k3d
-* Install tiler
 * Create configuration files (https://dev.to/sosan/k3s-y-k3d-buena-combinacion-para-el-desarrollo-en-local-y-tests-locales-a48)
 * create users and manage cluster roles (https://dev.to/martinsaporiti/instalando-k3d-para-jugar-con-k8s-phg)
 * Manage Cluster with lens (https://github.com/lensapp/lens/releases/tag/v4.1.2)
