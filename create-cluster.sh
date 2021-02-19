@@ -1,14 +1,16 @@
 #!/bin/sh
+CLUSTER_DOMAIN=example.com
 API_PORT=6443
 HTTP_PORT=80
 HTTPS_PORT=443
 CLUSTER_NAME=k3d-cluster
 READ_VALUE=
 SERVERS=1
-AGENTS=2
+AGENTS=1
 TRAEFIK_V2=Yes
 
 INSTALL_DASHBOARD=Yes
+INSTALL_PROMETHEUS=Yes
 
 
 # $1 text to show - $2 default value
@@ -38,6 +40,8 @@ checkDependencies ()
     if ! type docker > /dev/null; then
         echo "K3D could not be found. Installing it ..."
         curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+        # Install k3d autocompletion for bash
+        echo "source <(k3d completion bash)" >> ~/.bashrc
         exit
     fi
 
@@ -50,8 +54,26 @@ checkDependencies ()
         kubectl version --client
         exit
     fi
+
+    # Check Helm
+    if ! type helm > /dev/null; then
+        echo "Helm could not be found. Installing it ..."
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+        chmod +x ./get_helm.sh
+        ./get_helm.sh
+        exit
+    fi
 }
 
+
+header()
+{
+    echo ""
+    echo ""
+    echo ""
+    echo "${1}"
+    echo "-------------------------------------"
+}
 
 
 installCluster ()
@@ -67,9 +89,8 @@ installCluster ()
 
 #    --k3s-server-arg '--no-deploy=traefik' \
 #    --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
-
-    echo "LoadBalancer info:"
-    echo "kubectl -n=kube-system get svc | egrep -e NAME -e LoadBalancer"
+    header "LoadBalancer info:"
+    kubectl -n=kube-system get svc | egrep -e NAME -e LoadBalancer
 }
 
 
@@ -84,19 +105,49 @@ installDashboard ()
     # bind the dashboard-admin-service-account service account to the cluster-admin role
     kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
     # display token
-    echo ""
-    echo ""
-    echo "Keep this Token to acces dashboard"
-    echo "----------------------------------"
-    #kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | cut -d' ' -f1)
-    kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | awk '{ print $1 }')
-    echo ""
-    echo ""
-    echo ""
-    echo "Dashboard Access:"
-    echo "----------------------------------"
+    header "Keep this Token to acces dashboard"
+    #kubectl describe secret $(kubectl get secrets | grep dashboard-admin-sa | cut -d' ' -f1)
+    kubectl describe secret $(kubectl get secrets | grep dashboard-admin-sa | awk '{ print $1 }')
+
+    header "Dashboard Access:"
     echo "kubectl proxy"
     echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login"
+}
+
+
+installPrometheus ()
+{
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo add stable https://charts.helm.sh/stable
+    helm repo update
+    helm install --namespace prometheus --create-namespace prometheus prometheus-community/prometheus
+    helm install --namespace prometheus --create-namespace grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
+    cat <<EOF | kubectl create -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  namespace: prometheus
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+    - host: grafana.${CLUSTER_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
+EOF
+
+    header "Grafana Access:"
+    echo "url: https://grafana.${CLUSTER_DOMAIN}"
+    echo "username: admin"
+    echo "password: $(kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
 }
 
 checkDependencies 
@@ -104,6 +155,8 @@ checkDependencies
 #Retrieve config values 
 read_value "Cluster Name" "${CLUSTER_NAME}"
 CLUSTER_NAME=${READ_VALUE}
+read_value "Cluster Domain" "${CLUSTER_DOMAIN}"
+CLUSTER_DOMAIN=${READ_VALUE}
 read_value "API Port" "${API_PORT}"
 API_PORT=${READ_VALUE}
 read_value "Servers (aka Masters)" "${SERVERS}"
@@ -121,10 +174,17 @@ HTTPS_PORT=${READ_VALUE}
 
 installCluster
 
-read_value "Install Dashbard?" "${INSTALL_DASHBOARD}"
+read_value "Install Dashbard? (Yes/No)" "${INSTALL_DASHBOARD}"
 INSTALL_DASHBOARD=${READ_VALUE}
-
 if [ "${INSTALL_DASHBOARD}" = "Yes" ];
 then
     installDashboard
+fi
+
+read_value "Install Prometheus? (Yes/No)" "${INSTALL_PROMETHEUS}"
+INSTALL_PROMETHEUS=${READ_VALUE}
+
+if [ "${INSTALL_PROMETHEUS}" = "Yes" ];
+then
+    installPrometheus
 fi
