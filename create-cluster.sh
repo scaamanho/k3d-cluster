@@ -52,6 +52,15 @@ checkDependencies ()
         kubectl version --client
         exit
     fi
+
+    # Check Helm
+    if ! type helm > /dev/null; then
+        echo "Helm could not be found. Installing it ..."
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+        chmod +x ./get_helm.sh
+        ./get_helm.sh
+        exit
+    fi
 }
 
 
