@@ -1,6 +1,6 @@
 # K3D Persistence Cluster
 
-## TLTR
+## TL;DR
 
 ```sh
 > ./create-cluster.sh
