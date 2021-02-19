@@ -120,18 +120,19 @@ installPrometheus ()
     helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
     helm repo add stable https://charts.helm.sh/stable
     helm repo update
-    helm install prometheus prometheus-community/prometheus
-    helm install grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
+    helm install --namespace prometheus --create-namespace prometheus prometheus-community/prometheus
+    helm install --namespace prometheus --create-namespace grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
     cat <<EOF | kubectl create -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nginx
+  namespace: prometheus
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   rules:
-    - host: grafana.sch-labs.ga
+    - host: grafana.${CLUSTER_DOMAIN}
       http:
         paths:
           - path: /
@@ -146,7 +147,7 @@ EOF
     header "Grafana Access:"
     echo "url: https://grafana.${CLUSTER_DOMAIN}"
     echo "username: admin"
-    echo "password: $(kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
+    echo "password: $(kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
 }
 
 checkDependencies 
@@ -183,7 +184,7 @@ fi
 read_value "Install Prometheus? (Yes/No)" "${INSTALL_PROMETHEUS}"
 INSTALL_PROMETHEUS=${READ_VALUE}
 
-if [ "${INSTALL_DASHBOARD}" = "Yes" ];
+if [ "${INSTALL_PROMETHEUS}" = "Yes" ];
 then
     installPrometheus
 fi
