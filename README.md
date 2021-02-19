@@ -41,7 +41,7 @@ Also need install kubernetes client in order to manage cluster
 
 ## Install Helm
 
-Due we will use helm for some deploymens is recomended you also install helm
+Due we will use helm for some deploymens is recomended you also install it.
 
 ```sh
 > curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
