@@ -165,8 +165,6 @@ options:
     switchCurrentContext: true
 ```
 
-And 
-
 ### Manage Clusters
 
 Once cluster is created we can `start`, `stop` or even `delete` them
