@@ -100,6 +100,73 @@ Note that we are pointing port 443 on host to Cluster Load Balancer's 443 port. 
 You may as well expose a NodePort range (if you want to avoid the Ingress Controller).
 **Warning**: Map a wide range of ports can take a certain amount of time, and your computer can freeze for some time in this process.
 
+#### Config File
+
+K3D allow create cluster using configuration files
+
+```sh
+k3d cluster create --config cluster-configuration.yaml
+```
+where `cluster-configuration.yaml`
+
+```yaml
+apiVersion: k3d.io/v1alpha2
+kind: Simple
+name: test-cluster
+servers: 3
+agents: 2
+kubeAPI:
+  hostIP: "0.0.0.0"
+  hostPort: "6446"
+image: rancher/k3s:latest
+volumes:
+  - volume: /my/path:/some/path
+    nodeFilters:
+      - all
+ports:
+  - port: 80:80
+    nodeFilters:
+      - loadbalancer
+  - port: 0.0.0.0:443:443
+    nodeFilters:
+      - loadbalancer
+env:
+  - envVar: bar=baz
+    nodeFilters:
+      - all
+labels:
+  - label: foo=bar
+    nodeFilters:
+      - server[0]
+      - loadbalancer
+registries:
+  create: true
+  use: []
+  config: |
+    mirrors:
+      "my.company.registry":
+        endpoint:
+          - http://my.company.registry:5000
+
+options:
+  k3d:
+    wait: true
+    timeout: "360s" # should be pretty high for multi-server clusters to allow for a proper startup routine
+    disableLoadbalancer: false
+    disableImageVolume: false
+  k3s:
+    extraServerArgs:
+      - --tls-san=127.0.0.1
+#      - --no-deploy=traefik
+#      - --flannel-backend=none      
+    extraAgentArgs: []
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true
+```
+
+And 
+
 ### Manage Clusters
 
 Once cluster is created we can `start`, `stop` or even `delete` them
