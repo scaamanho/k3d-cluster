@@ -81,17 +81,80 @@ footer()
     echo ""
 }
 
-
 installCluster ()
 {
     echo "Creating K3D cluster"
-    k3d cluster create ${CLUSTER_NAME} \
-    --api-port ${API_PORT} \
-    --port ${HTTPS_PORT}:443@loadbalancer  \
-    --port ${HTTP_PORT}:80@loadbalancer \
-    --volume $(pwd)/k3dvol:/tmp/k3dvol \
-    --servers ${SERVERS} \
-    --agents ${AGENTS}
+#https://github.com/rancher/k3d/blob/main/tests/assets/config_test_simple.yaml
+    cat <<EOF > test-k3d-${CLUSTER_NAME}.yaml
+apiVersion: k3d.io/v1alpha2
+kind: Simple
+name: ${CLUSTER_NAME}
+servers: ${SERVERS} 
+agents: ${AGENTS}
+kubeAPI:
+  hostIP: "0.0.0.0"
+  hostPort: "${API_PORT}" # puerto kubernetes api 6443:6443
+#image: rancher/k3s:latest
+image: rancher/k3s:v1.19.4-k3s1
+volumes:
+#  - volume: /tmp:/tmp/fakepath # volumen en el localhost:contenedor
+  - volume: $(pwd)/k3dvol:/tmp/k3dvol # volumen en el localhost:contenedor
+    nodeFilters:
+      - all
+ports:
+  - port: ${HTTP_PORT}:80 # puerto http localhost:contenedor 8080:80
+    nodeFilters:
+      - loadbalancer
+  - port: 0.0.0.0:${HTTPS_PORT}:443 # https con 8443:443
+    nodeFilters:
+      - loadbalancer
+env:
+  - envVar: secret=token
+    nodeFilters:
+      - all
+labels:
+  - label: best_cluster=forced_tag
+    nodeFilters:
+      - server[0] # 
+      - loadbalancer
+
+#registries:
+#  create: true
+#  use: []
+#  config: |
+#    mirrors:
+#      "my.company.registry":
+#        endpoint:
+#          - http://my.company.registry:5000
+
+options:
+  k3d:
+    wait: true
+    timeout: "60s" # Cuando no se pueda arrancar, no entre en bucle arriba/abajo
+    disableLoadbalancer: false
+    disableImageVolume: false
+  k3s:
+    extraServerArgs:
+      - --tls-san=127.0.0.1
+#      - --no-deploy=traefik
+#      - --flannel-backend=none
+
+    extraAgentArgs: []
+  kubeconfig:
+    updateDefaultKubeconfig: true # actualiza automatica el kubeconfig
+    switchCurrentContext: true # cambia al nuevo contexto
+EOF
+
+
+ #   k3d cluster create ${CLUSTER_NAME} \
+ #   --api-port ${API_PORT} \
+ #   --port ${HTTPS_PORT}:443@loadbalancer  \
+ #   --port ${HTTP_PORT}:80@loadbalancer \
+ #   --volume $(pwd)/k3dvol:/tmp/k3dvol \
+ #   --servers ${SERVERS} \
+ #   --agents ${AGENTS}
+
+    k3d cluster create --config test-k3d-${CLUSTER_NAME}.yaml
 
 #    --k3s-server-arg '--no-deploy=traefik' \
 #    --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
