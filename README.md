@@ -3,7 +3,7 @@
 ## TL;DR
 
 ```sh
-> ./create-cluster.sh
+$ ./create-cluster.sh
 ```
 
 This will install all needed software if is not present and guide you in cluster creation.
@@ -14,10 +14,10 @@ This will install all needed software if is not present and guide you in cluster
 ### Install Docker
 
 ```sh
-> curl -L -o ./install-docker.sh "https://get.docker.com"
-> chmod +x ./install-docker.sh
-> ./install-docker.sh
-> sudo usermod -aG docker $USER
+$ curl -L -o ./install-docker.sh "https://get.docker.com"
+$ chmod +x ./install-docker.sh
+$ ./install-docker.sh
+$ sudo usermod -aG docker $USER
 ```
 
 ### Install K3D
@@ -25,7 +25,7 @@ This will install all needed software if is not present and guide you in cluster
 Firs install k3d on your system with:
 
 ```sh
-> curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+$ curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
 ```
 
 ### Install kubectl
@@ -33,10 +33,10 @@ Firs install k3d on your system with:
 Also need install kubernetes client in order to manage cluster
 
 ```sh
-> curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
-> chmod +x ./kubectl
-> sudo mv ./kubectl /usr/local/bin/kubectl
-> kubectl version --client
+$ curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+$ chmod +x ./kubectl
+$ sudo mv ./kubectl /usr/local/bin/kubectl
+$ kubectl version --client
 ```
 
 ### Install Helm
@@ -44,16 +44,16 @@ Also need install kubernetes client in order to manage cluster
 Due we will use helm for some deploymens is recomended you also install it.
 
 ```sh
-> curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-> chmod +x ./get_helm.sh
-> ./get_helm.sh
+$ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+$ chmod +x ./get_helm.sh
+$ ./get_helm.sh
 ```
 
 ### Install Lens
 
 This tool is not mandatory, but helps to inspect cluster without install kubernetes dashboard
 
-just go to <https://k8slens.dev/> and download it for your system
+just go to <https://k8slens.dev/$ and download it for your system
 
 This tool make use of prometheus if is avaliable on cluster.
 
@@ -67,7 +67,7 @@ You also can use other tools to inspect cluster as vscode plugin for kubernetes 
 Crete a directory in your host where Kubernetes cluster will be persist data
 
 ```sh
-> mkdir ./k3dvol
+$ mkdir ./k3dvol
 ```
 
 ### Create Kubernetes Cluster with LoadBalancer
@@ -82,7 +82,7 @@ For this sample will keep cluster simple but you can set "any number" of agents 
 Note that we are pointing port 443 on host to Cluster Load Balancer's 443 port. If you want use http you can use port 80.  
 
 ```sh
-> k3d cluster create dev-cluster \
+$ k3d cluster create dev-cluster \
 --api-port 6443 \
 --port 8443:443@loadbalancer  \
 --port 8080:80@loadbalancer \
@@ -172,9 +172,9 @@ And
 Once cluster is created we can `start`, `stop` or even `delete` them
 
 ```sh
-> k3d cluster start <cluster-name>
-> k3d cluster stop <cluster-name>
-> k3d cluster delete <cluster-name>`
+$ k3d cluster start <cluster-name>
+$ k3d cluster stop <cluster-name>
+$ k3d cluster delete <cluster-name>`
 ```
 
 
@@ -185,7 +185,7 @@ Once cluster is created we can `start`, `stop` or even `delete` them
 #### List cluster nodes
 
 ```sh
-> k3d node ls
+$ k3d node ls
 NAME                       ROLE           CLUSTER       STATUS
 k3d-k3d-cluster-agent-0    agent          k3d-cluster   running
 k3d-k3d-cluster-agent-1    agent          k3d-cluster   running
@@ -198,28 +198,28 @@ k3d-k3d-cluster-serverlb   loadbalancer   k3d-cluster   running
 Create new nodes (and add them to existing clusters)
 
 ```sh
-> k3d node create <nodename> --cluster <cluster-name> --role <agent/server>
+$ k3d node create <nodename$ --cluster <cluster-name$ --role <agent/server>
 ```
 
 To delete nodes just use:
 
 ```sh
-> k3d node delete <nodename>
+$ k3d node delete <nodename>
 ```
 
 Example
 ```sh
-> k3d node ls
+$ k3d node ls
 NAME                       ROLE           CLUSTER       STATUS
 k3d-k3d-cluster-agent-0    agent          k3d-cluster   running
 k3d-k3d-cluster-agent-1    agent          k3d-cluster   running
 k3d-k3d-cluster-server-0   server         k3d-cluster   running
 k3d-k3d-cluster-serverlb   loadbalancer   k3d-cluster   running
 
-> k3d node create my-new-agent-node --cluster k3d-cluster --role agent
+$ k3d node create my-new-agent-node --cluster k3d-cluster --role agent
 INFO[0000] Starting Node 'k3d-my-new-agent-node-0'
 
-> k3d node ls
+$ k3d node ls
 NAME                       ROLE           CLUSTER       STATUS
 k3d-k3d-cluster-agent-0    agent          k3d-cluster   running
 k3d-k3d-cluster-agent-1    agent          k3d-cluster   running
@@ -227,10 +227,10 @@ k3d-k3d-cluster-server-0   server         k3d-cluster   running
 k3d-k3d-cluster-serverlb   loadbalancer   k3d-cluster   running
 k3d-my-new-agent-node-0    agent          k3d-cluster   running
 
-> k3d node delete  k3d-my-new-agent-node-0
+$ k3d node delete  k3d-my-new-agent-node-0
 INFO[0000] Deleted k3d-my-new-agent-node-0   
 
-> k3d node ls
+$ k3d node ls
 NAME                       ROLE           CLUSTER       STATUS
 k3d-k3d-cluster-agent-0    agent          k3d-cluster   running
 k3d-k3d-cluster-agent-1    agent          k3d-cluster   running
@@ -246,8 +246,8 @@ Also can just stop or start nodes previously created with
 
 
 ```sh
-> k3d node start <nodename>
-> k3d node stop <nodename>
+$ k3d node start <nodename>
+$ k3d node stop <nodename>
 ```
 
 k3d create/start/stop/delete node mynode
@@ -257,8 +257,8 @@ k3d create/start/stop/delete node mynode
 Create or delete a local kubernetes internal registry
 
 ```sh
-> k3d registry create REGISTRY_NAME 
-> k3d registry delete REGISTRY_NAME
+$ k3d registry create REGISTRY_NAME 
+$ k3d registry delete REGISTRY_NAME
 ```
 
 
@@ -290,7 +290,7 @@ Now we can create a new cluster telling to k3d not deploy traefik with
 
 
 ```sh
-> k3d cluster create traefik --k3s-server-arg '--no-deploy=traefik' --volume "$(pwd)/helm-ingress-traefik.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-traefik.yaml"
+$ k3d cluster create traefik --k3s-server-arg '--no-deploy=traefik' --volume "$(pwd)/helm-ingress-traefik.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-traefik.yaml"
 
 ```
 
@@ -303,13 +303,13 @@ By default k3d add cluster to `~/.kube/config` file.
 We can choose default cluster with 
 
 ```sh
-> kubectl config use-context k3d-<cluster-name>
+$ kubectl config use-context k3d-<cluster-name>
 ```
 
 or setting KUBECONFIG enviroment 
 
 ```sh
-> export KUBECONFIG=$(k3d kubeconfig write <cluster-name>)
+$ export KUBECONFIG=$(k3d kubeconfig write <cluster-name>)
 ```
 
 #### Manage Kubeconfig
@@ -318,17 +318,17 @@ K3D provide some commands to manage kubeconfig
 get kubeconfig from cluster dev
 
 ```sh
-> k3d kubeconfig get <cluster-name>
+$ k3d kubeconfig get <cluster-name>
 ```
 
 create a kubeconfile file in $HOME/.k3d/kubeconfig-dev.yaml 
 ```sh
-> kubeconfig write <cluster-name>
+$ kubeconfig write <cluster-name>
 ```
 get kubeconfig from cluster(s) and  merge it/them into a file in $HOME/.k3d or another file
 
 ```sh
-> k3d kubeconfig merge ...
+$ k3d kubeconfig merge ...
 ```
 
 ### Deploy Kubernetes Dashboard
@@ -336,21 +336,21 @@ get kubeconfig from cluster(s) and  merge it/them into a file in $HOME/.k3d or a
 Deploy kuebernetes dashboard with
 
 ```sh
-> kubectl config use-context k3d-<cluster-name>
-> kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+$ kubectl config use-context k3d-<cluster-name>
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
 ```
 
 Now we need create a dashboard acount and bind this acount to `cluster-admin-role`
 
 ```sh
-> kubectl create serviceaccount dashboard-admin-sa
-> kubectl kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+$ kubectl create serviceaccount dashboard-admin-sa
+$ kubectl kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
 ```
 
 after create this user get user token with
 
 ```sh
-> kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | awk '{ print $1 }')
+$ kubectl describe secret $(kubectl get secrets | grep ashboard-admin-sa | awk '{ print $1 }')
 Name:         dashboard-admin-sa-token-bcf79
 Namespace:    default
 Labels:       <none>
@@ -368,11 +368,11 @@ token:      eyJhbGciOiJSUzI1NiIsImtpZCI6IjNDVFdKdVBZNndaVk5RWkh6dUxCcVRJVGo4RlQw
 Now execute 
 
 ```sh
-> kubectl proxy
+$ kubectl proxy
 Starting to serve on 127.0.0.1:8001
 ```
 now open URL: 
-<http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login> 
+<http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login$ 
 
 and use Token to login
 
@@ -384,12 +384,12 @@ and use Token to login
 First deploy Prometheus & Grafana and create an ingress entry for Grafana, You can also create another ingress for Prometheus if you need
 
 ```sh
-> helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-> helm repo add stable https://charts.helm.sh/stable
-> helm repo update
-> helm install --namespace prometheus --create-namespace prometheus prometheus-community/prometheus
-> helm install --namespace prometheus --create-namespace grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
-> cat <<EOF | kubectl create -f -
+$ helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+$ helm repo add stable https://charts.helm.sh/stable
+$ helm repo update
+$ helm install --namespace prometheus --create-namespace prometheus prometheus-community/prometheus
+$ helm install --namespace prometheus --create-namespace grafana stable/grafana --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true --set sidecar.datasources.label=grafana_datasource --set sidecar.dashboards.label=grafana_dashboard
+$ cat <<EOF | kubectl create -f -
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -416,7 +416,7 @@ EOF
 Once all is installed we can retrieve Grafana credentials to login with `admin` user.
 
 ```sh
-> kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+$ kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
 ```
 
 Now we can access Grafana and configure prometheus as  datasource for cluster metrics
@@ -426,12 +426,12 @@ Now we can access Grafana and configure prometheus as  datasource for cluster me
 ### Deploy portainer
 
 ```sh
-> kubectl apply -f https://raw.githubusercontent.com/portainer/portainer-k8s/master/portainer.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/portainer/portainer-k8s/master/portainer.yaml
 ```
 Once portainer is deployed you can access thought loadbalancer
 
 ```sh
-> kubectl -n portainer get svc
+$ kubectl -n portainer get svc
 NAME        TYPE           CLUSTER-IP      EXTERNAL-IP    PORT(S)                         AGE
 portainer   LoadBalancer   10.43.243.166   192.168.96.2   9000:31563/TCP,8000:30316/TCP   9m7s
 ```
@@ -439,10 +439,10 @@ portainer   LoadBalancer   10.43.243.166   192.168.96.2   9000:31563/TCP,8000:30
 ### Deploy simple applications
 
 ```sh
-> kubectl config use-context k3d-k3d-cluster
-> kubectl create deployment nginx --image=nginx
-> kubectl create service clusterip nginx --tcp=80:80
-> kubectl apply -f  nginx-ingress.yml
+$ kubectl config use-context k3d-k3d-cluster
+$ kubectl create deployment nginx --image=nginx
+$ kubectl create service clusterip nginx --tcp=80:80
+$ kubectl apply -f  nginx-ingress.yml
 ```
 
 ```yml
@@ -469,21 +469,21 @@ spec:
 Testing deployments:
 
 ```sh
-> curl localhost:4080
-> curl -k https://localhost:4443              
-> kubectl get po --all-namespaces -o wide
+$ curl localhost
+$ curl -k https://localhost          
+$ kubectl get po --all-namespaces -o wide
 NAMESPACE     NAME                                      READY   STATUS      RESTARTS   AGE    IP          NODE                       NOMINATED NODE   READINESS GATES
-kube-system   metrics-server-86cbb8457f-5bpzr           1/1     Running     0          78m    10.42.0.3   k3d-dev-cluster-server-0   <none>           <none>
-kube-system   local-path-provisioner-7c458769fb-hd2cc   1/1     Running     0          78m    10.42.1.3   k3d-dev-cluster-agent-0    <none>           <none>
-kube-system   helm-install-traefik-4qh5z                0/1     Completed   0          78m    10.42.0.2   k3d-dev-cluster-server-0   <none>           <none>
-kube-system   coredns-854c77959c-jmp94                  1/1     Running     0          78m    10.42.1.2   k3d-dev-cluster-agent-0    <none>           <none>
-kube-system   svclb-traefik-6ch8f                       2/2     Running     0          78m    10.42.0.4   k3d-dev-cluster-server-0   <none>           <none>
-kube-system   svclb-traefik-9tmk4                       2/2     Running     0          78m    10.42.1.4   k3d-dev-cluster-agent-0    <none>           <none>
-kube-system   svclb-traefik-h8vgj                       2/2     Running     0          78m    10.42.2.3   k3d-dev-cluster-agent-1    <none>           <none>
-kube-system   traefik-6f9cbd9bd4-6bjp4                  1/1     Running     0          78m    10.42.2.2   k3d-dev-cluster-agent-1    <none>           <none>
-default       nginx-6799fc88d8-vcjp5                    1/1     Running     0          29m    10.42.2.4   k3d-dev-cluster-agent-1    <none>           <none>
-> kubectl scale deployment nginx --replicas 4
-> kubectl get po --all-namespaces -o wide
+kube-system   metrics-server-86cbb8457f-5bpzr           1/1     Running     0          78m    10.42.0.3   k3d-dev-cluster-server-0   <none$           <none>
+kube-system   local-path-provisioner-7c458769fb-hd2cc   1/1     Running     0          78m    10.42.1.3   k3d-dev-cluster-agent-0    <none$           <none>
+kube-system   helm-install-traefik-4qh5z                0/1     Completed   0          78m    10.42.0.2   k3d-dev-cluster-server-0   <none$           <none>
+kube-system   coredns-854c77959c-jmp94                  1/1     Running     0          78m    10.42.1.2   k3d-dev-cluster-agent-0    <none$           <none>
+kube-system   svclb-traefik-6ch8f                       2/2     Running     0          78m    10.42.0.4   k3d-dev-cluster-server-0   <none$           <none>
+kube-system   svclb-traefik-9tmk4                       2/2     Running     0          78m    10.42.1.4   k3d-dev-cluster-agent-0    <none$           <none>
+kube-system   svclb-traefik-h8vgj                       2/2     Running     0          78m    10.42.2.3   k3d-dev-cluster-agent-1    <none$           <none>
+kube-system   traefik-6f9cbd9bd4-6bjp4                  1/1     Running     0          78m    10.42.2.2   k3d-dev-cluster-agent-1    <none$           <none>
+default       nginx-6799fc88d8-vcjp5                    1/1     Running     0          29m    10.42.2.4   k3d-dev-cluster-agent-1    <none$           <none>
+$ kubectl scale deployment nginx --replicas 4
+$ kubectl get po --all-namespaces -o wide
 ```
 
 ### Deploy Persistence Application  
@@ -547,14 +547,14 @@ spec:
 ```
 
 ```sh
-> kubectl apply -f persistence-app.yml
-> kubectl get pv
+$ kubectl apply -f persistence-app.yml
+$ kubectl get pv
 NAME             CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                   STORAGECLASS   REASON   AGE
 task-pv-volume   1Gi        RWO            Retain           Bound    default/task-pv-claim   manual                  2m54s
-> kubectl get pvc
+$ kubectl get pvc
 NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 task-pv-claim    Bound    task-pv-volume                             1Gi        RWO            manual         11s
-> kubectl get pods
+$ kubectl get pods
 NAME                   READY   STATUS    RESTARTS   AGE
 echo-58fd7d9b6-x4rxj   1/1     Running   0          16s
 ```
@@ -562,11 +562,11 @@ echo-58fd7d9b6-x4rxj   1/1     Running   0          16s
 
 
 References
-<https://github.com/rancher/k3d> 
-<https://k3s.io/> <https://github.com/k3s-io/k3s> 
-<https://en.sokube.ch/post/k3s-k3d-k8s-a-new-perfect-match-for-dev-and-test> 
-<https://dev.to/sosan/k3s-y-k3d-buena-combinacion-para-el-desarrollo-en-local-y-tests-locales-a48> 
+<https://github.com/rancher/k3d$ 
+<https://k3s.io/$ <https://github.com/k3s-io/k3s$ 
+<https://en.sokube.ch/post/k3s-k3d-k8s-a-new-perfect-match-for-dev-and-test$ 
+<https://dev.to/sosan/k3s-y-k3d-buena-combinacion-para-el-desarrollo-en-local-y-tests-locales-a48$ 
 https://sysdig.com/blog/kubernetes-monitoring-prometheus-operator-part3/
-<https://sysdig.com/blog/kubernetes-monitoring-prometheus/> 
+<https://sysdig.com/blog/kubernetes-monitoring-prometheus/$ 
 <https://sysdig.com/blog/kubernetes-monitoring-with-prometheus-alertmanager-grafana-pushgateway-part-2/>
 <https://sysdig.com/blog/kubernetes-monitoring-prometheus-operator-part3/>
