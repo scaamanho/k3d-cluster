@@ -13,6 +13,8 @@
 
 ### v0.0.3
 * Install Prometheus-Graphana
+
+### v0.0.4
 * Create configuration files
 
 
