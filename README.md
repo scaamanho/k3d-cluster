@@ -53,11 +53,16 @@ $ ./get_helm.sh
 
 This tool is not mandatory, but helps to inspect cluster without install kubernetes dashboard
 
-just go to <https://k8slens.dev/$ and download it for your system
+just go to <https://k8slens.dev/> and download it for your system
 
-This tool make use of prometheus if is avaliable on cluster.
+#### Prometheus Instalation
+This tool make use of prometheus for it's metris.
 
-You also can use other tools to inspect cluster as vscode plugin for kubernetes `ms-kubernetes-tools.vscode-kubernetes-tools`.
+You can install Prometheus by your own (see below) or can istall it from Lens. 
+
+Just do right click in **cluster icon** on left, and choose **Settings** in popup menu. This will lead to Settings Page.
+In Settings Page in **Features**, *Metrics Stack*, click on **Install** button.
+This will start prometheus deployment in cluster
 
 
 ![Lens](assets/lens.png)
@@ -397,7 +402,7 @@ metadata:
     ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   rules:
-    - host: grafana.example.com
+    - host: grafana.fuf.me
       http:
         paths:
           - path: /
@@ -420,6 +425,16 @@ $ kubectl get secret --namespace prometheus grafana -o jsonpath="{.data.admin-pa
 Now we can access Grafana and configure prometheus as  datasource for cluster metrics
 
 ![Grafana Configuration](assets/grafana-config.png)
+
+Once installed Grafana you can importa lots of dashboards avaliable at:
+<https://grafana.com/grafana/dashboards?>
+
+A nice dashboards cluster could be:
+<https://grafana.com/grafana/dashboards/11802>
+<https://grafana.com/grafana/dashboards/1860>
+<https://grafana.com/grafana/dashboards/5219>
+<https://grafana.com/grafana/dashboards/7249>
+<https://grafana.com/grafana/dashboards/13770>
 
 ### Deploy portainer
 

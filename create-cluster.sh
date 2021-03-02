@@ -1,5 +1,5 @@
 #!/bin/sh
-CLUSTER_DOMAIN=example.com
+CLUSTER_DOMAIN=fuf.me
 API_PORT=6443
 HTTP_PORT=80
 HTTPS_PORT=443
@@ -85,7 +85,7 @@ installCluster ()
 {
     echo "Creating K3D cluster"
 #https://github.com/rancher/k3d/blob/main/tests/assets/config_test_simple.yaml
-    cat <<EOF > test-k3d-${CLUSTER_NAME}.yaml
+    cat <<EOF > tmp-k3d-${CLUSTER_NAME}.yaml
 apiVersion: k3d.io/v1alpha2
 kind: Simple
 name: ${CLUSTER_NAME}
@@ -98,6 +98,7 @@ kubeAPI:
 image: rancher/k3s:v1.19.4-k3s1
 volumes:
 #  - volume: /tmp:/tmp/fakepath # volumen en el localhost:contenedor
+#  - volume: $(pwd)/k3deploy/helm-ingress-ngnx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml
   - volume: $(pwd)/k3dvol:/tmp/k3dvol # volumen en el localhost:contenedor
     nodeFilters:
       - all
@@ -136,7 +137,7 @@ options:
   k3s:
     extraServerArgs:
       - --tls-san=127.0.0.1
-#      - --no-deploy=traefik
+      - --no-deploy=traefik
 #      - --flannel-backend=none
 
     extraAgentArgs: []
@@ -158,9 +159,17 @@ EOF
 
 #    --k3s-server-arg '--no-deploy=traefik' \
 #    --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
+    sleep 2
     header "LoadBalancer info:"
     kubectl -n=kube-system get svc | egrep -e NAME -e LoadBalancer
     footer
+}
+
+installIngress ()
+{
+  helm repo add bitnami https://charts.bitnami.com/bitnami
+  helm repo update
+  helm install --namespace ingress-nginx  --create-namespace ingress bitnami/nginx-ingress-controller
 }
 
 
@@ -200,7 +209,7 @@ metadata:
   name: nginx
   namespace: monitoring
   annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   rules:
     - host: grafana.${CLUSTER_DOMAIN}
@@ -231,9 +240,9 @@ read_value "Cluster Domain" "${CLUSTER_DOMAIN}"
 CLUSTER_DOMAIN=${READ_VALUE}
 read_value "API Port" "${API_PORT}"
 API_PORT=${READ_VALUE}
-read_value "Servers (aka Masters)" "${SERVERS}"
+read_value "Servers (Masters)" "${SERVERS}"
 SERVERS=${READ_VALUE}
-read_value "Agents (aka Workers)" "${AGENTS}"
+read_value "Agents (Workers)" "${AGENTS}"
 AGENTS=${READ_VALUE}
 read_value "LoadBalancer HTTP Port" "${HTTP_PORT}"
 HTTP_PORT=${READ_VALUE}
@@ -245,6 +254,7 @@ HTTPS_PORT=${READ_VALUE}
 #TRAEFIK_V2=${READ_VALUE}
 
 installCluster
+installIngress
 
 read_value "Install Dashbard? (Yes/No)" "${INSTALL_DASHBOARD}"
 INSTALL_DASHBOARD=${READ_VALUE}

@@ -1,31 +1,31 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nginx
+  name: ingress-wildcard-host
   annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   rules:
-  - host: nginx.example.com
+  - host: "nginx.fuf.me"
     http:
       paths:
-      - path: /
-        pathType: Prefix
+      - pathType: Prefix
+        path: "/"
         backend:
           service:
             name: nginx
             port:
-              number: 80        
-  - host: apache.example.com
+              number: 80
+  - host: "whoami.fuf.me"
     http:
       paths:
-      - path: /
-        pathType: Prefix
+      - pathType: Prefix
+        path: "/"
         backend:
           service:
-            name: apache
+            name: whoami
             port:
-              number: 80         
+              number: 80           
 ---
 apiVersion: v1
 kind: Service
@@ -36,10 +36,10 @@ metadata:
     app: nginx
 spec:
   ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
   selector:
     app: nginx
   type: ClusterIP
@@ -47,19 +47,19 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: apache
+  name: whoami
   namespace: default
   labels:
-    app: apache
+    app: whoami
 spec:
   ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    protocol: TCP
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
   selector:
-    app: apache
-  type: ClusterIP
+    app: whoami
+  type: ClusterIP  
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -79,26 +79,40 @@ spec:
         app: nginx
     spec:
       containers:
-      - name: nginx
-        image: nginx
+        - name: nginx
+          image: nginx
+          resources:
+            requests:
+              memory: "10Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: apache
+  name: whoami
   namespace: default
   labels:
-    app: apache
+    app: whoami
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: apache
+      app: whoami
   template:
     metadata:
       labels:
-        app: apache
+        app: whoami
     spec:
-      containers:
-      - name: apache
-        image: httpd
+      containers:              
+        - name: whoami
+          image: containous/whoami
+          resources:
+            requests:
+              memory: "10Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"
