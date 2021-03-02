@@ -155,7 +155,7 @@ EOF
  #   --servers ${SERVERS} \
  #   --agents ${AGENTS}
 
-    k3d cluster create --config test-k3d-${CLUSTER_NAME}.yaml
+    k3d cluster create --config tmp-k3d-${CLUSTER_NAME}.yaml
 
 #    --k3s-server-arg '--no-deploy=traefik' \
 #    --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
