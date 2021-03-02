@@ -1,2 +1,5 @@
 /k3dvol
 tmp*
+*.key
+*.csr
+*.crt

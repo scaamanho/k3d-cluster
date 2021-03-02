@@ -167,9 +167,11 @@ EOF
 
 installIngress ()
 {
-  helm repo add bitnami https://charts.bitnami.com/bitnami
-  helm repo update
-  helm install --namespace ingress-nginx  --create-namespace ingress bitnami/nginx-ingress-controller
+  sleep 0
+#  helm repo add bitnami https://charts.bitnami.com/bitnami
+#  helm repo update
+#  helm install --namespace ingress-nginx  --create-namespace ingress bitnami/nginx-ingress-controller
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/cloud/deploy.yaml
 }
 
 
