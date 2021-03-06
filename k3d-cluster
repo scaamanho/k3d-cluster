@@ -1,0 +1,370 @@
+#!/bin/sh
+
+# Instalation variables
+CLUSTER_DOMAIN=fuf.me
+API_PORT=6443
+HTTP_PORT=80
+HTTPS_PORT=443
+CLUSTER_NAME=k3d-cluster
+READ_VALUE=
+SERVERS=1
+AGENTS=1
+TRAEFIK_V2=Yes
+INSTALL_INGRESS=Yes
+INSTALL_DASHBOARD=No
+INSTALL_PROMETHEUS=No
+
+# bold text 
+bold=$(tput bold)
+normal=$(tput sgr0)
+yes_no="(${bold}Y${normal}es/${bold}N${normal}o)"
+
+
+# $1 text to show - $2 default value
+read_value ()
+{
+    read -p "${1} [${bold}${2}${normal}]: " READ_VALUE
+    if [ "${READ_VALUE}" = "" ]
+    then
+        READ_VALUE=$2
+    fi
+}
+
+# Check if exist docker, k3d and kubectl
+checkDependencies ()
+{
+    # Check Docker
+    if ! type docker > /dev/null; then
+        echo "Docker could not be found. Installing it ..."
+        curl -L -o ./install-docker.sh "https://get.docker.com"
+        chmod +x ./install-docker.sh
+        ./install-docker.sh
+        sudo usermod -aG docker $USER
+        exit
+    fi
+
+    # Check K3D
+    if ! type docker > /dev/null; then
+        echo "K3D could not be found. Installing it ..."
+        curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
+        # Install k3d autocompletion for bash
+        echo "source <(k3d completion bash)" >> ~/.bashrc
+        exit
+    fi
+
+    # Check Kubectl
+    if ! type kubectl > /dev/null; then
+        echo "Kubectl could not be found. Installing it ..."
+        curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+        chmod +x ./kubectl
+        sudo mv ./kubectl /usr/local/bin/kubectl
+        kubectl version --client
+        exit
+    fi
+
+    # Check Helm
+    if ! type helm > /dev/null; then
+        echo "Helm could not be found. Installing it ..."
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+        chmod +x ./get_helm.sh
+        ./get_helm.sh
+        
+        # Add default repos
+        helm repo add stable https://charts.helm.sh/stable
+        # Add kubernetes-dashboard repository
+        helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+        # Add bitnami helm repos
+        helm repo add bitnami https://charts.bitnami.com/bitnami
+        # Add Prometheus helm repos
+        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+        # Update helm
+        helm repo update
+        exit
+    fi
+}
+
+header()
+{
+    echo "\n\n${bold}${1}${normal}\n-------------------------------------"
+}
+
+footer()
+{
+    echo "-------------------------------------"
+}
+
+configValues ()
+{
+  read_value "Cluster Name" "${CLUSTER_NAME}"
+  CLUSTER_NAME=${READ_VALUE}
+  read_value "Cluster Domain" "${CLUSTER_DOMAIN}"
+  CLUSTER_DOMAIN=${READ_VALUE}
+  read_value "API Port" "${API_PORT}"
+  API_PORT=${READ_VALUE}
+  read_value "Servers (Masters)" "${SERVERS}"
+  SERVERS=${READ_VALUE}
+  read_value "Agents (Workers)" "${AGENTS}"
+  AGENTS=${READ_VALUE}
+  read_value "LoadBalancer HTTP Port" "${HTTP_PORT}"
+  HTTP_PORT=${READ_VALUE}
+  read_value "LoadBalancer HTTPS Port" "${HTTPS_PORT}"
+  HTTPS_PORT=${READ_VALUE}
+}
+
+installCluster ()
+{
+  header "Deleting Previous Cluster"
+  k3d cluster delete ${CLUSTER_NAME}
+  footer
+
+  header "Creating K3D cluster"
+#https://github.com/rancher/k3d/blob/main/tests/assets/config_test_simple.yaml
+  cat <<EOF  > tmp-k3d-${CLUSTER_NAME}.yaml
+apiVersion: k3d.io/v1alpha2
+kind: Simple
+name: ${CLUSTER_NAME}
+servers: ${SERVERS} 
+agents: ${AGENTS}
+kubeAPI:
+  hostIP: "0.0.0.0"
+  hostPort: "${API_PORT}" # kubernetes api port 6443:6443
+
+#image: rancher/k3s:latest
+image: rancher/k3s:v1.19.4-k3s1
+
+volumes:
+#  - volume: $(pwd)/k3deploy/helm-ingress-ngnx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml
+  - volume: $(pwd)/k3dvol:/tmp/k3dvol # volume in host:container
+    nodeFilters:
+      - all
+
+ports:
+  - port: ${HTTP_PORT}:80 # http port host:container
+    nodeFilters:
+      - loadbalancer
+  - port: 0.0.0.0:${HTTPS_PORT}:443 # https port host:container
+    nodeFilters:
+      - loadbalancer
+
+env:
+  - envVar: secret=token
+    nodeFilters:
+      - all
+labels:
+  - label: best_cluster=forced_tag
+    nodeFilters:
+      - server[0] # 
+      - loadbalancer
+
+#registries:
+#  create: true
+#  use: []
+#  config: |
+#    mirrors:
+#      "my.company.registry":
+#        endpoint:
+#          - http://my.company.registry:5000
+
+options:
+  k3d:
+    wait: true
+    timeout: "60s" # avoid an start/stop cicle when start fails
+    disableLoadbalancer: false
+    disableImageVolume: false
+  k3s:
+    extraServerArgs:
+      - --tls-san=127.0.0.1
+      - --no-deploy=traefik
+#      - --flannel-backend=none
+
+    extraAgentArgs: []
+  kubeconfig:
+    updateDefaultKubeconfig: true # update kubeconfig when cluster starts
+    switchCurrentContext: true # change this cluster context when cluster starts
+EOF
+
+  k3d cluster create --config tmp-k3d-${CLUSTER_NAME}.yaml
+
+ #   k3d cluster create ${CLUSTER_NAME} \
+ #   --api-port ${API_PORT} \
+ #   --port ${HTTPS_PORT}:443@loadbalancer  \
+ #   --port ${HTTP_PORT}:80@loadbalancer \
+ #   --volume $(pwd)/k3dvol:/tmp/k3dvol \
+ #   --servers ${SERVERS} \
+ #   --agents ${AGENTS} \
+ #   --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
+ #   --k3s-server-arg '--no-deploy=traefik' 
+
+#    header "waiting for cluster init ..."
+#    sleep 5    
+
+  kubectl config use-context k3d-${CLUSTER_NAME}
+  kubectl cluster-info
+  footer
+
+  header "Provisioning Persistent Volume"
+  cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: k3d-pv
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/k3dvol"  
+EOF
+  kubectl describe pv k3d-pv
+  footer
+}
+
+installIngress ()
+{
+  header "Instaling Ingress"
+  # Create Namespace
+  kubectl create namespace ingress
+  # Create a secret with server certificate
+  kubectl --namespace ingress create secret tls nginx-server-certs --key certs/fuf.me+1-key.pem --cert certs/fuf.me+1.pem
+  # Install ingress with tls enabled providing certificates stored in namespace
+  cat <<EOF | helm install --namespace ingress -f - ingress bitnami/nginx-ingress-controller
+extraArgs:
+  default-ssl-certificate: "ingress/nginx-server-certs"
+EOF
+  footer
+  sleep 5
+  header "LoadBalancer info:"
+  kubectl -n ingress get svc | egrep -e NAME -e LoadBalancer
+  footer
+  #kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/cloud/deploy.yaml
+}
+
+
+installDashboard ()
+{
+  # Install Kubernetes Dashboard
+  kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
+  # Create dashboard account
+  kubectl create serviceaccount dashboard-admin-sa
+  # bind the dashboard-admin-service-account service account to the cluster-admin role
+  kubectl create clusterrolebinding dashboard-admin-sa --clusterrole=cluster-admin --serviceaccount=default:dashboard-admin-sa
+  
+  # Install Dashboard Ingress
+#  cat <<EOF | helm install -namespace kubernetes-dashboard -f - dashboard kubernetes-dashboard/kubernetes-dashboard
+#enableInsecureLogin: false
+#insecure-bind-address: 0.0.0.0
+#enable-skip-login: true
+#EOF
+  #helm install  --namespace kubernetes-dashboard dashboard kubernetes-dashboard/kubernetes-dashboard
+
+  # display token
+  header "Keep this Token to acces dashboard"
+  #kubectl describe secret $(kubectl get secrets | grep dashboard-admin-sa | cut -d' ' -f1)
+  kubectl describe secret $(kubectl get secrets | grep dashboard-admin-sa | awk '{ print $1 }')
+  header "Dashboard Access:"
+  echo "kubectl proxy"
+  echo "http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/login"
+  footer
+}
+
+
+installPrometheus ()
+{
+  # Install Prometheus
+  helm install --namespace monitoring --create-namespace prometheus  \
+  --set server.global.scrape_interval=30s prometheus-community/prometheus
+  # Install Grafana
+  helm install --namespace monitoring --create-namespace grafana stable/grafana \
+  --set sidecar.datasources.enabled=true --set sidecar.dashboards.enabled=true \
+  --set sidecar.datasources.label=grafana_datasource \
+  --set sidecar.dashboards.label=grafana_dashboard
+  # Create Ingress controler using server certificates
+  cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: monitoring
+  namespace: monitoring
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+    - host: grafana.${CLUSTER_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 80
+    - host: prometheus.${CLUSTER_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-server
+                port:
+                  number: 80
+EOF
+
+  header "Grafana and Prometheus Access:"
+  echo "${bold}Prometheus${normal}:"
+  echo "url: https://prometheus.${CLUSTER_DOMAIN}"
+  footer
+  echo "${bold}Grafana${normal}:"
+  echo "url: https://grafana.${CLUSTER_DOMAIN}"
+  echo "username: admin"
+  echo "password: $(kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo)"
+  echo "\nuse 'kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo' to get password"
+  footer
+}
+
+isSelected()
+{
+  if [ "${1}" = "Yes" ] || [ "${1}" = "yes" ] || [ "${1}" = "Y" ]  || [ "${1}" = "y" ];
+  then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+installAddons ()
+{
+  read_value "Install Ingress? ${yes_no}" "${INSTALL_INGRESS}"
+  if [ $(isSelected ${READ_VALUE}) = 1 ];
+  then
+      installIngress
+  fi
+
+  read_value "Install Dashbard? ${yes_no}" "${INSTALL_DASHBOARD}"
+  if [ $(isSelected ${READ_VALUE}) = 1 ];
+  then
+      installDashboard
+  fi
+
+  read_value "Install Prometheus? ${yes_no}" "${INSTALL_PROMETHEUS}"
+  if [ $(isSelected ${READ_VALUE}) = 1 ];
+  then
+      installPrometheus
+  fi
+}
+
+checkDependencies 
+
+#Retrieve config values 
+configValues
+
+# Todo Calico
+
+installCluster
+
+installAddons

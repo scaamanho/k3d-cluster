@@ -3,10 +3,26 @@
 ## TL;DR
 
 ```sh
-$ ./create-cluster.sh
+$> chmod +x k3d-cluster
+$> ./k3d-cluster
 ```
 
-This will install all needed software if is not present and guide you in cluster creation.
+This will install all software needed if is not present on your system and guide you in cluster creation.
+
+The cluster will created with the following features:
+
+* Kubernetes cluster with **n** Server and **m** Agents
+* Host directory mounted as PersistentVolume (k3d-pv)
+* Ingress Nginx with custom certificates [**optional**]
+* Kubernetes Dashboard [**optional**]
+* Prometheus and Grafana [**optional**]
+* Kubeapps [comming soon] [**optional**]
+* Istio [comming soon] [**optional**]
+* ELK [comming soon] [**optional**]
+
+All passwords and info needed will be displayed in terminal.
+
+***Enjoy Kubernetes!***
 
 
 ## Install Software
@@ -49,21 +65,24 @@ $ chmod +x ./get_helm.sh
 $ ./get_helm.sh
 ```
 
+### Install Istio
+[TODO]
+
 ### Install Lens
 
 This tool is not mandatory, but helps to inspect cluster without install kubernetes dashboard
 
 just go to <https://k8slens.dev/> and download it for your system
 
-#### Prometheus Instalation
-This tool make use of prometheus for it's metris.
+#### Prometheus Instalation for Lens metrics
 
-You can install Prometheus by your own (see below) or can istall it from Lens. 
+This tool make use of Prometheus if is avaliable in cluster for it's metris.
+
+You can install Prometheus using **`k3d-cluster`**, by your own (see below) or using Lens if you skip this step before. 
 
 Just do right click in **cluster icon** on left, and choose **Settings** in popup menu. This will lead to Settings Page.
 In Settings Page in **Features**, *Metrics Stack*, click on **Install** button.
 This will start prometheus deployment in cluster
-
 
 ![Lens](assets/lens.png)
 
@@ -71,9 +90,33 @@ This will start prometheus deployment in cluster
 
 Crete a directory in your host where Kubernetes cluster will be persist data
 
-```sh
-$ mkdir ./k3dvol
+`k3d-cluster`  will be mount the directory ./k3dvol for all cluster nodes in `/tmp/k3dvol` directory. This means all nodes share it as persistence volume where you can store your persitent data.
+
+Once cluster is created, you can create `PersitentVolume` pointing the volumen mounted with 
+
+
+```yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: k3d-pv
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/tmp/k3dvol"
 ```
+
+```sh
+$> kubectl apply -f ./examples/pv/k3d-pv.yaml
+```
+
+and use it in **`PersitentVolumeClaim`**
 
 ### Create Kubernetes Cluster with LoadBalancer
 
@@ -294,8 +337,85 @@ Now we can create a new cluster telling to k3d not deploy traefik with
 
 ```sh
 $ k3d cluster create traefik --k3s-server-arg '--no-deploy=traefik' --volume "$(pwd)/helm-ingress-traefik.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-traefik.yaml"
-
 ```
+
+### Instalation Ingress with custom certificates
+
+This instalation script **`k3d-cluster`**, not install ingress by default, but provide an option (enabled by default) to install **`bitnami/ingress-nginx`** chart and set default ingress certificates.
+Those certificates are provided in **`certs`** folder.
+
+Use **[mkcert](https://github.com/FiloSottile/mkcert)** to create your own CA and generate your own certificates
+
+Create your own CA
+
+```sh
+$> mkcert -install
+```
+
+Create a signed certificate for your cluster 
+
+```sh
+$> cd certs
+$> mkcert fuf.me "*.fuf.me" fuf.me
+```
+
+Create a signed certificate for multiple domains
+
+```sh
+$> mkcert fuf.me "*.fuf.me" fuf.me "*.vcap.me" vcap.me \
+"*.localtest.me" localtest.me "*.yoogle.com" yoogle.com \
+"*.lvh.me" lvh.me "*.bret.lol" bret.lol
+```
+
+All these domains points to 127.0.0.1 
+
+#### Use multiple domains
+
+With mkcert you can create certificates for multiple wildcard domains.
+
+You always can add new domain certificates to ingress to override default cluster
+
+create a new cert for your cluster
+```sh
+$> mkcert 192.168.1.10.xip.io "*.192.168.1.10.xip.io" 192.168.1.10.xip.io
+```
+
+Create a secret in namespace where deploy ingress to store certificate
+
+```sh
+$> $> kubectl create secret tls xip-server-certs --key 192.168.1.10.xip.io.key --cert 192.168.1.10.xip.io.pem
+```
+
+Use the certificate at Ingress deployment
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+      - "nginx.192.168.1.10.xip.io.pem" 
+    - secretName: xip-server-certs    
+  rules:
+    - host: "nginx.192.168.1.10.xip.io.pem"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx
+                port:
+                  number: 80
+```
+
+### Using cert-manager
+
+Use **[cert-manager](https://cert-manager.io/)** to manage your cluster certificates in a more eficient way and manage diferent issuers to generete certifcates.
 
 ## Deploy  on Kubernetes
 

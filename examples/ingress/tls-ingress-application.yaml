@@ -1,31 +1,33 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nginx
+  name: whoami
   annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   tls:
-  - secretName: nginx-server-certs    
+    - hosts:
+      - "whoami.fuf.me"
+    - secretName: nginx-server-certs    
   rules:
-    - host: nginx.fuf.me
+    - host: "whoami.fuf.me"
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: nginx
+                name: whoami
                 port:
                   number: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx
+  name: whoami
   namespace: default
   labels:
-    app: nginx
+    app: whoami
 spec:
   ports:
     - name: http
@@ -33,29 +35,29 @@ spec:
       targetPort: 80
       protocol: TCP
   selector:
-    app: nginx
+    app: whoami
   type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx
+  name: whoami
   namespace: default
   labels:
-    app: nginx
+    app: whoami
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: nginx
+      app: whoami
   template:
     metadata:
       labels:
-        app: nginx
+        app: whoami
     spec:
       containers:
-        - name: nginx
-          image: nginx
+        - name: whoami
+          image: containous/whoami
           resources:
             requests:
               memory: "10Mi"
