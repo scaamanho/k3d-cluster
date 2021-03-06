@@ -246,6 +246,7 @@ EOF
 
 installDashboard ()
 {
+  header "Instaling Dashboard"
   # Install Kubernetes Dashboard
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml
   # Create dashboard account
@@ -274,6 +275,7 @@ installDashboard ()
 
 installPrometheus ()
 {
+  header "Instaling Prometheus & Grafana"
   # Install Prometheus
   helm install --namespace monitoring --create-namespace prometheus  \
   --set server.global.scrape_interval=30s prometheus-community/prometheus
@@ -327,6 +329,24 @@ EOF
   footer
 }
 
+installKubeapps ()
+{
+  header "Instaling Kubeapps"
+  cat <<EOF | helm install --namespace kubeapps --create-namespace -f - kubeapps bitnami/kubeapps
+ingress:
+  enabled: true
+  hostname: kubeapps.${CLUSTER_DOMAIN}
+  tls: true
+EOF
+  #helm install --namespace kubeapps --create-namespace kubeapps bitnami/kubeapps
+  kubectl create serviceaccount kubeapps-operator
+  kubectl create clusterrolebinding kubeapps-operator --clusterrole=cluster-admin --serviceaccount=default:kubeapps-operator
+
+  echo "url: https://kubeapps.${CLUSTER_DOMAIN}"
+  echo "Token: \n$(  kubectl get secret $(kubectl get serviceaccount kubeapps-operator -o jsonpath='{range .secrets[*]}{.name}{"\n"}{end}' | grep kubeapps-operator-token) -o jsonpath='{.data.token}' -o go-template='{{.data.token | base64decode}}' && echo)"
+  footer
+}
+
 isSelected()
 {
   if [ "${1}" = "Yes" ] || [ "${1}" = "yes" ] || [ "${1}" = "Y" ]  || [ "${1}" = "y" ];
@@ -356,6 +376,12 @@ installAddons ()
   then
       installPrometheus
   fi
+
+  # read_value "Install Kubeapps? ${yes_no}" "${INSTALL_PROMETHEUS}"
+  # if [ $(isSelected ${READ_VALUE}) = 1 ];
+  # then
+  #     installKubeapps
+  # fi
 }
 
 checkDependencies 

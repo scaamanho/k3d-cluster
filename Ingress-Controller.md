@@ -320,3 +320,27 @@ kubectl apply  \
 
 
  --name my-release
+
+
+
+ cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kubeapps
+  namespace: kubeapps
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+    - host: kubeapps.${CLUSTER_DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kubeapps-internal-dashboard
+                port:
+                  number: 8080
+EOF
