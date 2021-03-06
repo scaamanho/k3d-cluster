@@ -1,4 +1,4 @@
-# K3D Persistence Cluster
+# K3D-Cluster
 
 ## TL;DR
 
