@@ -2,6 +2,8 @@
 
 ## TL;DR
 
+Generate server certificates in certs folder for `fuf.me` server using mkcert, this domain will point to  127.0.0.1
+
 ```sh
 $> chmod +x k3d-cluster
 $> ./k3d-cluster
@@ -16,16 +18,13 @@ Software instaled if not exist:
 * kubectl
 * helm
 
-The cluster will created with the following features:
+The cluster will created using k3d with the following features:
 
 * Kubernetes cluster with **n** Server and **m** Agents
 * Host directory mounted as PersistentVolume (k3d-pv)
 * Ingress Nginx with custom certificates [**optional**]
 * Kubernetes Dashboard [**optional**]
 * Prometheus and Grafana [**optional**]
-* Kubeapps [comming soon] [**optional**]
-* Istio [comming soon] [**optional**]
-* ELK [comming soon] [**optional**]
 
 All passwords and info needed will be displayed in terminal.
 
@@ -217,9 +216,6 @@ $ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/s
 $ chmod +x ./get_helm.sh
 $ ./get_helm.sh
 ```
-
-### Install Istio
-[TODO]
 
 ### Install Lens
 

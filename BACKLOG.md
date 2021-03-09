@@ -17,6 +17,12 @@
 ### v0.0.4
 * Create configuration files
 
+### v0.1.0
+* Create cluster using configuration files instead command line parameters
+* Install Nginx Ingress instead Traefik 1.6
+* Use server certificates
+* Create Persitent volumes
+* Install Prometheus Graphana
 
 ## BACKLOG
 
@@ -38,3 +44,6 @@ By default k3s comes with Traefik v1 as the default ingress controller, most of 
 kubectl apply -f https://raw.githubusercontent.com/portainer/portainer-k8s/master/portainer.yaml
 https://load-balancer-ip:9000
 * ...
+* Kubeapps [comming soon] [optional]
+* Istio [comming soon] [optional]
+* ELK [comming soon] [optional]

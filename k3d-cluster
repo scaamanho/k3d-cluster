@@ -229,7 +229,7 @@ installIngress ()
   # Create Namespace
   kubectl create namespace ingress
   # Create a secret with server certificate
-  kubectl --namespace ingress create secret tls nginx-server-certs --key certs/fuf.me+1-key.pem --cert certs/fuf.me+1.pem
+  kubectl --namespace ingress create secret tls nginx-server-certs --key certs/fuf.me-key.pem --cert certs/fuf.me.pem
   # Install ingress with tls enabled providing certificates stored in namespace
   cat <<EOF | helm install --namespace ingress -f - ingress bitnami/nginx-ingress-controller
 extraArgs:
