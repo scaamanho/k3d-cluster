@@ -44,7 +44,7 @@ checkDependencies ()
     fi
 
     # Check K3D
-    if ! type docker > /dev/null; then
+    if ! type k3d > /dev/null; then
         echo "K3D could not be found. Installing it ..."
         curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
         # Install k3d autocompletion for bash

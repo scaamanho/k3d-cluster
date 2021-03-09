@@ -9,6 +9,13 @@ $> ./k3d-cluster
 
 This will install all software needed if is not present on your system and guide you in cluster creation.
 
+Software instaled if not exist:
+
+* Docker
+* k3d
+* kubectl
+* helm
+
 The cluster will created with the following features:
 
 * Kubernetes cluster with **n** Server and **m** Agents
