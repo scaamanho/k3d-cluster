@@ -24,6 +24,152 @@ All passwords and info needed will be displayed in terminal.
 
 ***Enjoy Kubernetes!***
 
+```sh
+$> ./k3d-cluster 
+Cluster Name [k3d-cluster]: 
+Cluster Domain [fuf.me]: 
+API Port [6443]: 
+Servers (Masters) [1]: 
+Agents (Workers) [1]: 2
+LoadBalancer HTTP Port [80]: 
+LoadBalancer HTTPS Port [443]: 
+
+
+Deleting Previous Cluster
+-------------------------------------
+INFO[0000] No clusters found                            
+-------------------------------------
+
+
+Creating K3D cluster
+-------------------------------------
+INFO[0000] Using config file tmp-k3d-k3d-cluster.yaml   
+INFO[0000] Prep: Network                                
+INFO[0000] Created network 'k3d-k3d-cluster'            
+INFO[0000] Created volume 'k3d-k3d-cluster-images'      
+INFO[0001] Creating node 'k3d-k3d-cluster-server-0'     
+INFO[0001] Creating node 'k3d-k3d-cluster-agent-0'      
+INFO[0001] Creating node 'k3d-k3d-cluster-agent-1'      
+INFO[0001] Creating LoadBalancer 'k3d-k3d-cluster-serverlb' 
+INFO[0001] Starting cluster 'k3d-cluster'               
+INFO[0001] Starting servers...                          
+INFO[0001] Starting Node 'k3d-k3d-cluster-server-0'     
+INFO[0007] Starting agents...                           
+INFO[0007] Starting Node 'k3d-k3d-cluster-agent-0'      
+INFO[0015] Starting Node 'k3d-k3d-cluster-agent-1'      
+INFO[0023] Starting helpers...                          
+INFO[0023] Starting Node 'k3d-k3d-cluster-serverlb'     
+INFO[0025] (Optional) Trying to get IP of the docker host and inject it into the cluster as 'host.k3d.internal' for easy access 
+INFO[0030] Successfully added host record to /etc/hosts in 4/4 nodes and to the CoreDNS ConfigMap 
+INFO[0030] Cluster 'k3d-cluster' created successfully!  
+INFO[0030] --kubeconfig-update-default=false --> sets --kubeconfig-switch-context=false 
+INFO[0030] You can now use it like this:                
+kubectl config use-context k3d-k3d-cluster
+kubectl cluster-info
+Switched to context "k3d-k3d-cluster".
+Kubernetes control plane is running at https://0.0.0.0:6443
+CoreDNS is running at https://0.0.0.0:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+Metrics-server is running at https://0.0.0.0:6443/api/v1/namespaces/kube-system/services/https:metrics-server:/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+-------------------------------------
+
+
+Provisioning Persistent Volume
+-------------------------------------
+persistentvolume/k3d-pv created
+Name:            k3d-pv
+Labels:          type=local
+Annotations:     <none>
+Finalizers:      [kubernetes.io/pv-protection]
+StorageClass:    manual
+Status:          Available
+Claim:           
+Reclaim Policy:  Retain
+Access Modes:    RWO
+VolumeMode:      Filesystem
+Capacity:        50Gi
+Node Affinity:   <none>
+Message:         
+Source:
+    Type:          HostPath (bare host directory volume)
+    Path:          /tmp/k3dvol
+    HostPathType:  
+Events:            <none>
+-------------------------------------
+Install Ingress? (Yes/No) [Yes]: 
+
+
+Instaling Ingress
+-------------------------------------
+namespace/ingress created
+secret/nginx-server-certs created
+NAME: ingress
+LAST DEPLOYED: Tue Mar  9 19:30:47 2021
+NAMESPACE: ingress
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+** Please be patient while the chart is being deployed **
+
+The nginx-ingress controller has been installed.
+
+Get the application URL by running these commands:
+
+ NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+        You can watch its status by running 'kubectl get --namespace ingress svc -w ingress-nginx-ingress-controller'
+
+    export SERVICE_IP=$(kubectl get svc --namespace ingress ingress-nginx-ingress-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    echo "Visit http://${SERVICE_IP} to access your application via HTTP."
+    echo "Visit https://${SERVICE_IP} to access your application via HTTPS."
+
+An example Ingress that makes use of the controller:
+
+  apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    annotations:
+      kubernetes.io/ingress.class: nginx
+    name: example
+    namespace: foo
+  spec:
+    rules:
+      - host: www.example.com
+        http:
+          paths:
+            - backend:
+                serviceName: exampleService
+                port: 80
+              path: /
+    # This section is only required if TLS is to be enabled for the Ingress
+    tls:
+        - hosts:
+            - www.example.com
+          secretName: example-tls
+
+If TLS is enabled for the Ingress, a Secret containing the certificate and key must also be provided:
+
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: example-tls
+    namespace: foo
+  data:
+    tls.crt: <base64 encoded cert>
+    tls.key: <base64 encoded key>
+  type: kubernetes.io/tls
+-------------------------------------
+
+
+LoadBalancer info:
+-------------------------------------
+NAME                                               TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
+ingress-nginx-ingress-controller                   LoadBalancer   10.43.22.225   <pending>     80:31286/TCP,443:31747/TCP   5s
+-------------------------------------
+Install Dashbard? (Yes/No) [No]: 
+Install Prometheus? (Yes/No) [No]:
+```
 
 ## Install Software
 
