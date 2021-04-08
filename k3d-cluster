@@ -40,7 +40,7 @@ checkDependencies ()
         chmod +x ./install-docker.sh
         ./install-docker.sh
         sudo usermod -aG docker $USER
-        exit
+        #exit
     fi
 
     # Check K3D
@@ -49,7 +49,7 @@ checkDependencies ()
         curl -s https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash
         # Install k3d autocompletion for bash
         echo "source <(k3d completion bash)" >> ~/.bashrc
-        exit
+        #exit
     fi
 
     # Check Kubectl
@@ -59,7 +59,7 @@ checkDependencies ()
         chmod +x ./kubectl
         sudo mv ./kubectl /usr/local/bin/kubectl
         kubectl version --client
-        exit
+        #exit
     fi
 
     # Check Helm
@@ -79,7 +79,7 @@ checkDependencies ()
         helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
         # Update helm
         helm repo update
-        exit
+        #exit
     fi
 }
 
