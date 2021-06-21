@@ -1,0 +1,75 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: persistent-volume1
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+      - "pv1.fuf.me"
+    - secretName: nginx-server-certs    
+  rules:
+    - host: "pv1.fuf.me"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pv1
+                port:
+                  number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pv1
+  namespace: default
+  labels:
+    app: persistentvolume
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+  selector:
+    app: pv1
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pv1
+  namespace: default
+  labels:
+    app: persistentvolume
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pv1
+  template:
+    metadata:
+      labels:
+        app: pv1
+    spec:
+      volumes:
+        - name: nginx-static
+          persistentVolumeClaim:
+            claimName: pvc-k3d
+      containers:
+        - name: pv1
+          image: nginx
+          volumeMounts:
+            - mountPath: "/usr/share/nginx/html"
+              name: nginx-static
+              subPath: ngixn/server-pv-1
+          resources:
+            requests:
+              memory: "10Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "200m"

@@ -11,4 +11,4 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/tmp/k3dvol"
+    path: "/k3dvol/k3dvol"    

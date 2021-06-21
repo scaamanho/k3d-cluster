@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+spec:
+  volumes:
+  - name: k3d-volume
+    persistentVolumeClaim:
+      claimName: pvc-k3d
+  containers:
+  - image: busybox
+    name: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 600"]
+    volumeMounts:
+    - name: k3d-volume
+      mountPath: /mydata
+      subPath: busybox
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox2
+spec:
+  volumes:
+  - name: k3d-volume
+    persistentVolumeClaim:
+      claimName: pvc-k3d
+  containers:
+  - image: busybox
+    name: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 600"]
+    volumeMounts:
+    - name: k3d-volume
+      mountPath: /mydata
+      subPath: busybox2

@@ -1,0 +1,40 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: server-pv-1
+spec:
+  volumes:
+    - name: nginx-static
+      persistentVolumeClaim:
+        claimName: pvc-k3d
+  containers:
+    - name: server-pv-1
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+      volumeMounts:
+        - mountPath: "/usr/share/nginx/html"
+          name: nginx-static
+          subPath: ngixn/server-pv-1
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: server-pv-2
+spec:
+#  volumes:
+#    - name: nginx-static
+#      persistentVolumeClaim:
+#        claimName: pvc-k3d
+  containers:
+    - name: server-pv-2
+      image: nginx
+      ports:
+        - containerPort: 80
+          name: "http-server"
+#      volumeMounts:
+#        - mountPath: "/usr/share/nginx/html"
+#          name: nginx-static
+#          subPath: ngixn/server-pv-2

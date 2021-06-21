@@ -1,11 +1,12 @@
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: k3d-pv-claim
+  name: pvc-k3d
 spec:
   storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 100Mi

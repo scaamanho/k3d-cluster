@@ -134,7 +134,7 @@ image: rancher/k3s:v1.19.4-k3s1
 
 volumes:
 #  - volume: $(pwd)/k3deploy/helm-ingress-ngnx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml
-  - volume: $(pwd)/k3dvol:/tmp/k3dvol # volume in host:container
+  - volume: $(pwd)/k3dvol:/k3dvol # volume in host:container
     nodeFilters:
       - all
 
@@ -195,8 +195,8 @@ EOF
  #   --volume "$(pwd)/deployments/helm-ingress-nginx.yaml:/var/lib/rancher/k3s/server/manifests/helm-ingress-nginx.yaml" \
  #   --k3s-server-arg '--no-deploy=traefik' 
 
-#    header "waiting for cluster init ..."
-#    sleep 5    
+  header "waiting for cluster init ..."
+  sleep 5    
 
   kubectl config use-context k3d-${CLUSTER_NAME}
   kubectl cluster-info
@@ -217,9 +217,9 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/tmp/k3dvol"  
+    path: "/k3dvol"  
 EOF
-  kubectl describe pv k3d-pv
+#  kubectl describe pv k3d-pv
   footer
 }
 

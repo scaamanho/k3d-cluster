@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pv-server1
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  rules:
+    - host: fakecrypt.fuf.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: server-pv-1-service
+                port:
+                  number: 80
+    - host: nada.fuf.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: server-pv-2-service
+                port:
+                  number: 80

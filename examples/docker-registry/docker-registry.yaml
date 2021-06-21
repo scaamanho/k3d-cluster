@@ -7,6 +7,7 @@ metadata:
     app/version: "1.2.1"
   name: docker-registry
 spec:
+  storageClassName: manual
   accessModes:
     - "ReadWriteOnce"
   resources:
@@ -138,7 +139,7 @@ spec:
     spec:
       containers:
         - name: registry-ui
-          image: "docker.io/joxit/docker-registry-ui:static"
+          image: "docker.io/joxit/docker-registry-ui:1.5-static"
           imagePullPolicy: Always
           env:
             - name: REGISTRY_TITLE
