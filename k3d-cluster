@@ -120,14 +120,15 @@ installCluster ()
   header "Creating K3D cluster"
 #https://github.com/rancher/k3d/blob/main/tests/assets/config_test_simple.yaml
   cat <<EOF  > tmp-k3d-${CLUSTER_NAME}.yaml
-apiVersion: k3d.io/v1alpha2
+apiVersion: k3d.io/v1alpha5
 kind: Simple
-name: ${CLUSTER_NAME}
+metadata:
+  name: ${CLUSTER_NAME}
 servers: ${SERVERS} 
 agents: ${AGENTS}
-kubeAPI:
-  hostIP: "0.0.0.0"
-  hostPort: "${API_PORT}" # kubernetes api port 6443:6443
+#kubeAPI:
+#  hostIP: "0.0.0.0"
+#  hostPort: "${API_PORT}" # kubernetes api port 6443:6443
 
 image: rancher/k3s:latest
 #image: rancher/k3s:v1.19.4-k3s1
@@ -150,11 +151,11 @@ env:
   - envVar: secret=token
     nodeFilters:
       - all
-labels:
-  - label: best_cluster=forced_tag
-    nodeFilters:
-      - server[0] # 
-      - loadbalancer
+#labels:
+#  - label: best_cluster=forced_tag
+#    nodeFilters:
+#      - server[0] # 
+#      - loadbalancer
 
 #registries:
 #  create: true
@@ -172,15 +173,29 @@ options:
     disableLoadbalancer: false
     disableImageVolume: false
   k3s:
-    extraServerArgs:
-      - --tls-san=127.0.0.1
-      - --no-deploy=traefik
+#    extraServerArgs:
+    extraArgs:
+      - arg: --tls-san=127.0.0.1
+#      - arg: --no-deploy=traefik
+        nodeFilters:
+          - server:*
+    nodeLabels:
+      - label: best_cluster=forced_tag
+        nodeFilters:
+          - server:0
+          - loadbalancer
 #      - --flannel-backend=none
 
-    extraAgentArgs: []
+#    extraAgentArgs: []
   kubeconfig:
     updateDefaultKubeconfig: true # update kubeconfig when cluster starts
     switchCurrentContext: true # change this cluster context when cluster starts
+  runtime:
+    labels:
+      - label: best_cluster=forced_tag
+        nodeFilters:
+          - server:0
+          - loadbalancer
 EOF
 
   k3d cluster create --config tmp-k3d-${CLUSTER_NAME}.yaml
@@ -196,7 +211,7 @@ EOF
  #   --k3s-server-arg '--no-deploy=traefik' 
 
   header "waiting for cluster init ..."
-  sleep 5    
+  sleep 10    
 
   kubectl config use-context k3d-${CLUSTER_NAME}
   kubectl cluster-info
